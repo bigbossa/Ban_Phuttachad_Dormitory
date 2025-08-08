@@ -1,0 +1,102 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 215 15% 35%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 15% 35%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 15% 35%;
+
+    --primary: 24 94% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 13% 91%;
+    --secondary-foreground: 215 15% 35%;
+
+    --muted: 220 13% 91%;
+    --muted-foreground: 215 10% 50%;
+
+    --accent: 220 13% 91%;
+    --accent-foreground: 215 15% 35%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 24 94% 53%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 15% 35%;
+    --sidebar-primary: 24 94% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 91%;
+    --sidebar-accent-foreground: 215 15% 35%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 24 94% 53%;
+  }
+
+  .dark {
+    --background: 215 25% 15%;
+    --foreground: 220 13% 91%;
+
+    --card: 215 28% 17%;
+    --card-foreground: 220 13% 91%;
+
+    --popover: 215 28% 17%;
+    --popover-foreground: 220 13% 91%;
+
+    --primary: 24 94% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 25% 23%;
+    --secondary-foreground: 220 13% 91%;
+
+    --muted: 215 25% 23%;
+    --muted-foreground: 220 13% 75%;
+
+    --accent: 215 25% 23%;
+    --accent-foreground: 220 13% 91%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 220 13% 91%;
+
+    --border: 215 25% 23%;
+    --input: 215 25% 23%;
+    --ring: 24 94% 53%;
+
+    --sidebar-background: 215 28% 17%;
+    --sidebar-foreground: 220 13% 91%;
+    --sidebar-primary: 24 94% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 25% 23%;
+    --sidebar-accent-foreground: 220 13% 91%;
+    --sidebar-border: 215 25% 23%;
+    --sidebar-ring: 24 94% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Noto Sans', 'Noto Sans Thai', sans-serif;
+  }
+  
+  /* Thai font optimization */
+  .font-thai {
+    font-family: 'Noto Sans Thai', sans-serif;
+  }
+}
