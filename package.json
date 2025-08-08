@@ -11,7 +11,11 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "npm rebuild @swc/core"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
