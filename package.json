@@ -15,7 +15,7 @@
     "postinstall": "npm rebuild @swc/core"
   },
   "engines": {
-    "node": "18.x"
+    "node": "20.19.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
