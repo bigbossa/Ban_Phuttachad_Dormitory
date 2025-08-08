@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import {
@@ -233,6 +234,7 @@ const { settings } = useSystemSettings();
       {/* Header + Add Room Button */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{t("rooms.management")}</h1>
+      
         {(user?.role === "admin" || user?.role === "staff") && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -243,18 +245,18 @@ const { settings } = useSystemSettings();
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("rooms.add")}</DialogTitle>
-                <DialogDescription>Add a new room to the dormitory.</DialogDescription>
+                <DialogDescription>{t("rooms.addDesc")}</DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div>
                   <label htmlFor="roomNumber" className="block mb-1 font-medium">
-                    เลขห้อง
+                    {t("rooms.number")}
                   </label>
                   <Input
                     id="roomNumber"
                     type="text"
-                    placeholder="เลขห้อง"
+                    placeholder={t("rooms.number")}
                     value={newRoom.room_number}
                     onChange={(e) =>
                       setNewRoom({
@@ -267,35 +269,36 @@ const { settings } = useSystemSettings();
 
                 <div>
                   <label htmlFor="roomType" className="block mb-1 font-medium">
-                    ประเภทห้อง
+                    {t("rooms.type")}
                   </label>
                   <Select
                     id="roomType"
                     value={newRoom.room_type}
                     onValueChange={(v) => {
-                      // กำหนด capacity ตามประเภทห้อง และล็อกค่าไว้เลย
-                      const capacity = v === "Standard Single" ? 1 : v === "Standard Double" ? 2 : 0;
+                      const capacity =
+                        v === t("Standard.Single") ? 1 :
+                        v === t("Standard.Double") ? 2 : 0;
                       setNewRoom({ ...newRoom, room_type: v, capacity });
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="เลือกประเภทห้อง" />
+                      <SelectValue placeholder={t("rooms.type") + "..."} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Standard Single">Standard Single</SelectItem>
-                      <SelectItem value="Standard Double">Standard Double</SelectItem>
+                      <SelectItem value="Standard Single">{t("Standard.Single")}</SelectItem>
+                      <SelectItem value="Standard Double">{t("Standard.Double")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label htmlFor="price" className="block mb-1 font-medium">
-                    ราคาเช่า
+                    {t("rooms.rent")}
                   </label>
                   <Input
                     id="price"
                     type="number"
-                    placeholder="ราคาเช่า"
+                    placeholder={t("rooms.rent")}
                     value={roomRent}
                     onChange={(e) =>
                       setNewRoom({ ...newRoom, price: Number(e.target.value) })
@@ -305,13 +308,13 @@ const { settings } = useSystemSettings();
 
                 <div>
                   <label htmlFor="capacity" className="block mb-1 font-medium">
-                    ความจุ (คน)
+                    {t("rooms.capacity")}
                   </label>
 
                   {newRoom.room_type === "" ? (
                     <Input
                       id="capacity"
-                      placeholder="กรุณาเลือกประเภทห้องก่อน"
+                      placeholder={t("rooms.type") + "..."}
                       disabled
                       value=""
                     />
@@ -338,12 +341,12 @@ const { settings } = useSystemSettings();
 
                 <div>
                   <label htmlFor="floor" className="block mb-1 font-medium">
-                    ชั้น
+                    {t("rooms.floor")}
                   </label>
                   <Input
                     id="floor"
                     type="number"
-                    placeholder="ชั้น"
+                    placeholder={t("rooms.floor")}
                     min={1}
                     max={floor}
                     value={newRoom.floor}
@@ -368,7 +371,7 @@ const { settings } = useSystemSettings();
       {/* Filters */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <Input
-          placeholder="Search by room number"
+          placeholder={t("Search by room number")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -380,10 +383,10 @@ const { settings } = useSystemSettings();
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="vacant">Vacant</SelectItem>
-              <SelectItem value="occupied">Occupied</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
+              <SelectItem value="all">{t("All Statuses")}</SelectItem>
+              <SelectItem value="vacant">{t("satatus.vacant")}</SelectItem>
+              <SelectItem value="occupied">{t("satatus.occupied")}</SelectItem>
+              <SelectItem value="maintenance">{t("satatus.maintenance")}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -392,9 +395,9 @@ const { settings } = useSystemSettings();
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="Standard Single">Standard Single</SelectItem>
-              <SelectItem value="Standard Double">Standard Double</SelectItem>
+              <SelectItem value="all">{t("rooms.allTypes") || "All Types"}</SelectItem>
+              <SelectItem value="Standard Single">{t("Standard.Single")}</SelectItem>
+              <SelectItem value="Standard Double">{t("Standard.Double")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -409,9 +412,9 @@ const { settings } = useSystemSettings();
               <TableHead>{t("rooms.type")}</TableHead>
               <TableHead>{t("rooms.status")}</TableHead>
               <TableHead>{t("rooms.rent")}</TableHead>
-              <TableHead>Capacity</TableHead>
-              <TableHead>Floor</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("rooms.capacity")}</TableHead>
+              <TableHead>{t("rooms.floor")}</TableHead>
+              <TableHead className="text-right">{t("Actions.text")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -422,14 +425,14 @@ const { settings } = useSystemSettings();
                     <DoorClosed className="h-4 w-4 mr-2 text-muted-foreground" />
                     {room.room_number}
                   </TableCell>
-                  <TableCell>{room.room_type}</TableCell>
+                  <TableCell>{t(room.room_type)}</TableCell>
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
                         room.status
                       )}`}
                     >
-                      {room.status}
+                      {t(`satatus.${room.status}`)}
                     </span>
                   </TableCell>
                   <TableCell>{formatPrice(roomRent)}</TableCell>
@@ -444,7 +447,7 @@ const { settings } = useSystemSettings();
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("Actions.text")}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => {
@@ -453,7 +456,7 @@ const { settings } = useSystemSettings();
                           }}
                         >
                           <Eye className="mr-2 h-4 w-4" />
-                          View Details
+                          {t("view_details")}
                         </DropdownMenuItem>
                         {(user?.role === "admin" || user?.role === "staff") && (
                           <>
@@ -464,7 +467,7 @@ const { settings } = useSystemSettings();
                               }}
                             >
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit
+                              {t("edit")}
                             </DropdownMenuItem>
                             {/* <DropdownMenuItem
                               onClick={() => {
@@ -506,10 +509,11 @@ const { settings } = useSystemSettings();
                   </TableCell>
                 </TableRow>
               ))
-            ) : (
+            ) :           
+             (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-4">
-                  No rooms found. Try adjusting your search or filters.
+                  {t("No rooms found. Try adjusting your search or filters.")}
                 </TableCell>
               </TableRow>
             )}

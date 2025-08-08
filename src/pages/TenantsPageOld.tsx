@@ -159,13 +159,13 @@ const TenantsPageOld = ({ children }) => {
   };
 
   const handleDeleteTenant = (tenant) => {
-    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบ ${tenant.first_name} ${tenant.last_name}?`)) {
+    if (confirm(t("tenants.confirmDelete", { name: `${tenant.first_name} ${tenant.last_name}` }))) {
       deleteTenant(tenant.id);
     }
   };
 
   const handleDeleteRentedchild = (tenant) => {
-    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบลูกเช่าของ ${tenant.first_name} ${tenant.last_name}?`)) {
+    if (confirm(t("tenants.confirmDeleteChild", { name: `${tenant.first_name} ${tenant.last_name}` }))) {
       deleteRentedchild(tenant.id);
     }
   };
@@ -176,7 +176,7 @@ const TenantsPageOld = ({ children }) => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">กำลังโหลดข้อมูล...</p>
+            <p className="mt-2 text-muted-foreground">{t("tenants.loading")}</p>
           </div>
         </div>
       </div>
@@ -189,12 +189,11 @@ const TenantsPageOld = ({ children }) => {
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>จัดการผู้ใช้ระบบ</DialogTitle>
+            <DialogTitle>{t("tenants.manageUser")}</DialogTitle>
           </DialogHeader>
         </DialogContent>
       </Dialog>
 
-      {/* User Create Dialog */}
       <UserCreateDialog
         open={createUserOpen}
         onOpenChange={setCreateUserOpen}
@@ -203,35 +202,21 @@ const TenantsPageOld = ({ children }) => {
       <div className="animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold">ประวัติการเช่า</h1>
-            <p className="text-muted-foreground">ดูรายละเอียด ผู้เข่ารายเก่า ที่ย้ายออกจากหอพัก</p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            {/* <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
-              <Button
-                onClick={() => {
-                  setIsOpen(false);
-                  setCreateUserOpen(true);
-                }}
-                className="flex items-center gap-2"
-              >
-                <Plus size={16} />
-                เพิ่มผู้เช่าใหม่
-              </Button>
-            </div> */}
+            <h1 className="text-2xl font-bold">{t("tenants.historyTitle")}</h1>
+            <p className="text-muted-foreground">{t("tenants.historyDesc")}</p>
           </div>
         </div>
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>ค้นหาผู้เช่า</CardTitle>
+            <CardTitle>{t("tenants.searchTitle")}</CardTitle>
             <CardDescription>
-              ค้นหาผู้เช่าด้วยชื่อ อีเมล เบอร์โทร หรือหมายเลขห้อง
+              {t("tenants.searchDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Input 
-              placeholder="ค้นหาผู้เช่า..." 
+              placeholder={t("tenants.searchPlaceholder")} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
@@ -241,9 +226,12 @@ const TenantsPageOld = ({ children }) => {
 
         <Card>
           <CardHeader>
-            <CardTitle>รายชื่อผู้เช่า</CardTitle>
+            <CardTitle>{t("tenants.listTitle")}</CardTitle>
             <CardDescription>
-              แสดง {filteredTenants.length} จาก {tenants.filter(t =>  t.action == "2" ).length} รายการ
+              {t("tenants.showCount", {
+                filtered: filteredTenants.length,
+                total: tenants.filter(t =>  t.action == "2" ).length,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -251,12 +239,11 @@ const TenantsPageOld = ({ children }) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ผู้เช่า</TableHead>
-                    <TableHead>เบอร์โทร</TableHead>
-                    {/* <TableHead>ห้องที่เช่า</TableHead> */}
-                    <TableHead>ที่อยู่</TableHead>
-                    <TableHead>วันที่เพิ่ม</TableHead>
-                    <TableHead className="w-[100px]">จัดการ</TableHead>
+                    <TableHead>{t("tenants.name")}</TableHead>
+                    <TableHead>{t("tenants.phone")}</TableHead>
+                    <TableHead>{t("tenants.address")}</TableHead>
+                    <TableHead>{t("tenants.createdAt")}</TableHead>
+                    <TableHead className="w-[100px]">{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -265,7 +252,7 @@ const TenantsPageOld = ({ children }) => {
                       <TableCell colSpan={6} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <Users className="h-8 w-8 text-muted-foreground" />
-                          <p className="text-muted-foreground">ไม่มีข้อมูลผู้เช่า</p>
+                          <p className="text-muted-foreground">{t("tenants.noData")}</p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -276,8 +263,6 @@ const TenantsPageOld = ({ children }) => {
                       const currentOccupants = occupancyMap[roomId] || 0;
                       const roomCapacity = roomCapacityMap[roomId] || 0;
                       const isRoomFull = currentOccupants >= roomCapacity;
-
-                      console.log(`Room ID: ${roomId}, Capacity: ${roomCapacity}, Occupants: ${currentOccupants}`);
 
                       return (
                         <TableRow key={tenant.id}>
@@ -299,23 +284,6 @@ const TenantsPageOld = ({ children }) => {
                             </div>
                           </TableCell>
                           <TableCell>{tenant.phone || "-"}</TableCell>
-                          {/* <TableCell>
-                            {tenant.current_room ? (
-                              <div className="flex items-center gap-2">
-                                <Home className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <Badge variant="secondary" className="text-xs">
-                                    ห้อง {tenant.current_room.room_number}
-                                  </Badge>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {tenant.current_room.room_type} • ชั้น {tenant.current_room.floor}
-                                  </p>
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">ไม่ได้เช่าห้อง</span>
-                            )}
-                          </TableCell> */}
                           <TableCell className="max-w-[150px] truncate">
                             {tenant.address || "-"}
                           </TableCell>
@@ -332,66 +300,14 @@ const TenantsPageOld = ({ children }) => {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleViewDetails(tenant)}>
                                   <Eye className="mr-2 h-4 w-4" />
-                                  ดูรายละเอียด
+                                  {t("tenants.viewDetails")}
                                 </DropdownMenuItem>
-                                {/* <DropdownMenuItem onClick={() => handleAssignRoom(tenant)}>
-                                  <UserPlus className="mr-2 h-4 w-4" />
-                                  กำหนดห้อง
-                                </DropdownMenuItem> */}
-
-                                {/* {!isRoomFull && tenant.current_room && (
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedRoom({
-                                        id: tenant.current_room.id,
-                                        room_number: tenant.current_room.room_number,
-                                      });
-                                      setEditingTenant(tenant);
-                                      setIsFormOpen(false);
-                                      setIsRentedChildFormOpen(true);
-                                    }}
-                                  >
-                                    <UserPlus className="mr-2 h-4 w-4" />
-                                    เพิ่มลูกเช่า
-                                  </DropdownMenuItem>
-                                )} */}
                                 {tenant.image && (
                                   <DropdownMenuItem onClick={() => handleViewContractImage(tenant)}>
                                     <Eye className="mr-2 h-4 w-4" />
-                                    ดูรูปภาพสัญญา
+                                    {t("tenants.viewContractImage")}
                                   </DropdownMenuItem>
                                 )}
-                                {/* {tenant.image ? (
-                                  <DropdownMenuItem onClick={() => handleViewContractImage(tenant)}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    ดูรูปภาพสัญญา
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem onClick={() => handleAddContractImage(tenant)}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    เพิ่มรูปภาพสัญญา
-                                  </DropdownMenuItem>
-                                )} */}
-                                {/* <DropdownMenuItem onClick={() => handleEditTenant(tenant)}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  แก้ไข
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleDeleteTenant(tenant)}
-                                  className="text-destructive"
-                                  disabled={isDeleting}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  ลบ
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleDeleteRentedchild(tenant)}
-                                  className="text-destructive"
-                                  disabled={isDeleting}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  ลบลูกเช่า
-                                </DropdownMenuItem> */}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

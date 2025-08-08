@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSystemStats } from "@/hooks/useSystemStats";
 import { RoomStatsCard } from "@/components/dashboard/RoomStatsCard";
@@ -72,9 +73,12 @@ export default function Dashboard() {
     <div className="animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">ยินดีต้อนรับ</h1>
-          <p className="text-muted-foreground">ภาพรวมระบบจัดการหอพัก</p>
+          <h1 className="text-2xl font-bold">{t("dashboard.welcome") || "ยินดีต้อนรับ"}</h1>
+          <p className="text-muted-foreground">{t("dashboard.overview") || "ภาพรวมระบบจัดการหอพัก"}</p>
         </div>
+        {/* <div>
+          <LanguageSwitcher />
+        </div> */}
 
         {/* ข้อมูล user หลัก */}
         {user && (
@@ -144,7 +148,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>รายได้ทั้งหมดที่ผ่านมา</span>
+              <span>{t("dashboard.totalRevenue")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>

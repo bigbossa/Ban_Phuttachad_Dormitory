@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, MapPin, User, Briefcase, Building2, CheckCircle, XCircle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 type Staff = Database['public']['Tables']['staffs']['Row'];
 
@@ -22,6 +23,7 @@ export default function StaffDetailsDialog({
   onOpenChange,
   staff,
 }: StaffDetailsDialogProps) {
+  const { t } = useLanguage();
   if (!staff) return null;
 
   const fullName = `${staff.first_name} ${staff.last_name}`;
@@ -30,7 +32,7 @@ export default function StaffDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>ข้อมูลพนักงาน</DialogTitle>
+          <DialogTitle>{t("staff.detailTitle")}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -46,16 +48,16 @@ export default function StaffDetailsDialog({
             </Avatar>
             <div>
               <h3 className="text-lg font-semibold">{fullName}</h3>
-              <Badge variant="secondary">พนักงาน</Badge>
+              <Badge variant="secondary">{t("staff.staffRole")}</Badge>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant={staff.status === "1" ? "2" : "destructive"}>
                   {staff.status === "1" ? (
                     <>
-                      <CheckCircle className="h-3 w-3 mr-1" /> ทำงานอยู่
+                      <CheckCircle className="h-3 w-3 mr-1" /> {t("staff.working")}
                     </>
                   ) : (
                     <>
-                      <XCircle className="h-3 w-3 mr-1" /> ไม่ได้ทำงาน
+                      <XCircle className="h-3 w-3 mr-1" /> {t("staff.notWorking")}
                     </>
                   )}
                 </Badge>
@@ -68,7 +70,7 @@ export default function StaffDetailsDialog({
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">อีเมล</p>
+                  <p className="text-sm font-medium">{t("staff.email")}</p>
                   <p className="text-sm text-muted-foreground">{staff.email}</p>
                 </div>
               </div>
@@ -77,7 +79,7 @@ export default function StaffDetailsDialog({
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">เบอร์โทร</p>
+                  <p className="text-sm font-medium">{t("staff.phone")}</p>
                   <p className="text-sm text-muted-foreground">{staff.phone}</p>
                 </div>
               </div>
@@ -86,7 +88,7 @@ export default function StaffDetailsDialog({
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">ที่อยู่</p>
+                  <p className="text-sm font-medium">{t("staff.address")}</p>
                   <p className="text-sm text-muted-foreground">{staff.address}</p>
                 </div>
               </div>
@@ -95,7 +97,7 @@ export default function StaffDetailsDialog({
               <div className="flex items-center space-x-3">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">ตำแหน่ง</p>
+                  <p className="text-sm font-medium">{t("staff.position")}</p>
                   <p className="text-sm text-muted-foreground">{staff.role}</p>
                 </div>
               </div>
@@ -104,7 +106,7 @@ export default function StaffDetailsDialog({
               <div className="flex items-center space-x-3">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">แผนก</p>
+                  <p className="text-sm font-medium">{t("staff.department")}</p>
                   <p className="text-sm text-muted-foreground">{staff.department}</p>
                 </div>
               </div>
@@ -112,9 +114,9 @@ export default function StaffDetailsDialog({
           </div>
           
           <div className="text-xs text-muted-foreground">
-            <p>สร้างเมื่อ: {staff.created_at ? new Date(staff.created_at).toLocaleDateString('th-TH') : "-"}</p>
+            <p>{t("staff.createdAt")}: {staff.created_at ? new Date(staff.created_at).toLocaleDateString('th-TH') : "-"}</p>
             {staff.updated_at && (
-              <p>อัปเดตล่าสุด: {new Date(staff.updated_at).toLocaleDateString('th-TH')}</p>
+              <p>{t("staff.updatedAt")}: {new Date(staff.updated_at).toLocaleDateString('th-TH')}</p>
             )}
           </div>
         </div>

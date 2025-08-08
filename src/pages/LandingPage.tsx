@@ -453,12 +453,23 @@ useEffect(() => {
             className="w-full max-w-[90vw] max-h-[80vh] sm:max-w-[600px] md:max-w-[800px] h-auto rounded-lg shadow-lg border-4 border-white"
             onClick={e => e.stopPropagation()}
           />
+          
         </div>
-      )}
+      )
+      }
+
+      {/* Back to Top Button */}
 
 
             
-  {/* Calendar Section */}
+      {/* Calendar Section */}
+      { /* ข้อความอธิบายเหนือ Calendar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="bg-card rounded-lg shadow p-4 text-center">
+          <h3 className="text-xl font-semibold mb-2">{t("calendar.infoTitle")}</h3>
+          <p className="text-muted-foreground">{t("calendar.infoDesc")}</p>
+        </div>
+      </div>
       <div className="py-8 sm:py-16 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -618,14 +629,14 @@ useEffect(() => {
             <div>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-4">Contact Us</h3>
+              <h3 className="text-lg font-bold mb-4">{t("welcome.contact")}</h3>
               <div className="flex space-x-4">
                 <a href="https://maps.app.goo.gl/SUTe631uLxX4DD3QA" target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-primary">
                   <p className="text-muted-foreground">100 หนองปากโลง</p>
                   <p className="text-muted-foreground">อำเภอเมืองนครปฐม นครปฐม 73000</p>
-                  <p className="text-muted-foreground">Phone: 06-5329-9452</p>
+                  <p className="text-muted-foreground">{t("welcome.phone")}: 06-5329-9452</p>
                   <p className="text-muted-foreground">Line : IDLine</p>
-                  <p className="text-muted-foreground"><a href="https://www.facebook.com/poll.ponlop.5/">Facebook : Poll Ponlop</a></p>
+                  <p className="text-muted-foreground"><a href="https://www.facebook.com/poll.ponlop.5/">{t("welcome.facebook")}: Poll Ponlop</a></p>
                 </a>
               </div>
             </div>

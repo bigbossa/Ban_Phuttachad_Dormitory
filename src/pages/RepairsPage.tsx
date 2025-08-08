@@ -362,11 +362,11 @@ if (isTenant) {
             />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">ทั้งหมด</SelectItem>
-            <SelectItem value="pending">รอดำเนินการ</SelectItem>
-            <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
-            <SelectItem value="completed">เสร็จสิ้น</SelectItem>
-            <SelectItem value="cancelled">ยกเลิก</SelectItem>
+            <SelectItem value="all">{t("repairs.status_all") || "ทั้งหมด"}</SelectItem>
+            <SelectItem value="pending">{t("repairs.status_pending") || "รอดำเนินการ"}</SelectItem>
+            <SelectItem value="in_progress">{t("repairs.status_in_progress") || "กำลังดำเนินการ"}</SelectItem>
+            <SelectItem value="completed">{t("repairs.status_completed") || "เสร็จสิ้น"}</SelectItem>
+            <SelectItem value="cancelled">{t("repairs.status_cancelled") || "ยกเลิก"}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -489,12 +489,12 @@ if (isTenant) {
           }}
         >
           <SelectTrigger id="room-select">
-            <SelectValue placeholder="เลือกห้อง" />
+            <SelectValue placeholder={t("repairs.selectRoom") || "เลือกห้อง"} />
           </SelectTrigger>
           <SelectContent>
             {availableRooms.filter(room => room.current_occupants < 1).length === 0 ? (
               <div className="px-3 py-2 text-muted-foreground text-sm">
-                ไม่มีห้องว่าง
+                {t("repairs.noAvailableRoom") || "ไม่มีห้องว่าง"}
               </div>
             ) : (
               availableRooms
@@ -513,12 +513,12 @@ if (isTenant) {
         <div className="px-4 py-2 rounded border text-muted-foreground">
           ห้องพักของคุณ:{" "}
           <span className="font-semibold text-primary">
-            {user.tenant?.room_number || "ไม่พบข้อมูล"}
+            {user.tenant?.room_number || t("repairs.noRoomInfo") || "ไม่พบข้อมูล"}
           </span>
         </div>
       ) : (
         <div className="px-4 py-2 text-muted-foreground">
-          ไม่มีสิทธิ์เลือกห้อง
+          {t("repairs.noPermission") || "ไม่มีสิทธิ์เลือกห้อง"}
         </div>
       )}
       </div>
@@ -530,7 +530,8 @@ if (isTenant) {
               onChange={(e) =>
                 setNewRepair({ ...newRepair, description: e.target.value })
               }
-              placeholder="อธิบายปัญหาที่ต้องการแจ้งซ่อม..."
+              placeholder={t("repairs.descriptionPlaceholder") || "อธิบายปัญหาที่ต้องการแจ้งซ่อม..."}
+
               rows={4}
             />
           </div>
@@ -571,30 +572,10 @@ if (isTenant) {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>แก้ไขการแจ้งซ่อม</DialogTitle>
+            <DialogTitle>{t("repairs.edit") || "แก้ไขการแจ้งซ่อม"}</DialogTitle>
           </DialogHeader>
           {editingRepair && (
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="edit_room_id">{t("repairs.room")}</label>
-                <Select
-                  value={editingRepair.room_id}
-                  onValueChange={(value) =>
-                    setEditingRepair({ ...editingRepair, room_id: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกห้อง" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        {room.room_number}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <label htmlFor="edit_room_id">{t("repairs.room")}</label>
                 <Select
@@ -647,7 +628,7 @@ if (isTenant) {
             </div>
           )}
           <DialogFooter>
-            <Button onClick={handleUpdateRepair}>บันทึกการแก้ไข</Button>
+            <Button onClick={handleUpdateRepair}>{t("repairs.saveEdit") || "บันทึกการแก้ไข"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -33,7 +33,7 @@ export function RevenueChart({ monthlyData, formatCurrency, t }: RevenueChartPro
       <CardHeader>
         <CardTitle>{t("dashboard.monthlyRevenue")}</CardTitle>
         <CardDescription>
-          Revenue trend over the last 6 months
+          {t("dashboard.revenueTrend") || "Revenue trend over the last 6 months"}
         </CardDescription>
       </CardHeader>
       <CardContent className="h-80">
@@ -43,7 +43,7 @@ export function RevenueChart({ monthlyData, formatCurrency, t }: RevenueChartPro
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip
-              formatter={(value) => [formatCurrency(value as number), "Revenue"]}
+              formatter={(value) => [formatCurrency(value as number), t("dashboard.revenue") || "Revenue"]}
             />
             <Bar dataKey="revenue" fill="hsl(var(--primary))" />
           </BarChart>

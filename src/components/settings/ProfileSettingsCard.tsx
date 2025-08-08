@@ -16,9 +16,11 @@ import { User, Mail, Phone, MapPin, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import ViewContractDialog from "../tenants/ViewContractDialog";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export function ProfileSettingsCard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [contractDialogOpen, setContractDialogOpen] = useState(false);
 
@@ -143,9 +145,9 @@ export function ProfileSettingsCard() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
-            <span>โปรไฟล์ส่วนตัว</span>
+            <span>{t("profile.title")}</span>
           </CardTitle>
-          <CardDescription>จัดการข้อมูลส่วนตัวของคุณ</CardDescription>
+          <CardDescription>{t("profile.manage")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-4">
@@ -167,12 +169,12 @@ export function ProfileSettingsCard() {
               <h3 className="text-lg font-medium">{user?.name}</h3>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <Badge variant="secondary" className="mt-1">
-                {user?.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงาน"}
+                {user?.role === "admin" ? t("profile.admin") : t("profile.staff")}
               </Badge>
             </div>
           </div>
           <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-            การแก้ไขโปรไฟล์รองรับเฉพาะผู้เช่าเท่านั้น
+            {t("profile.tenantOnlyEdit")}
           </p>
         </CardContent>
       </Card>
@@ -184,10 +186,10 @@ export function ProfileSettingsCard() {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <User className="h-5 w-5" />
-          <span>โปรไฟล์ส่วนตัว</span>
+          <span>{t("profile.title")}</span>
         </CardTitle>
         <CardDescription>
-          จัดการข้อมูลส่วนตัวของคุณ อัปเดตข้อมูลติดต่อและที่อยู่
+          {t("profile.manageContact")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -211,10 +213,10 @@ export function ProfileSettingsCard() {
             <h3 className="text-lg font-medium">{user?.name}</h3>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline">ผู้เช่า</Badge>
+              <Badge variant="outline">{t("profile.tenant")}</Badge>
               {user?.tenant?.room_number && (
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span>ห้อง {user.tenant.room_number}</span>
+                  <span>{t("profile.room")} {user.tenant.room_number}</span>
                 </div>
               )}
             </div>
@@ -226,26 +228,26 @@ export function ProfileSettingsCard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="firstName" className="text-sm font-medium">
-                ชื่อ <span className="text-destructive">*</span>
+                {t("profile.firstName")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange("firstName", e.target.value)}
-                placeholder="กรุณาใส่ชื่อ"
+                placeholder={t("profile.enterFirstName")}
                 className="mt-1"
                 required
               />
             </div>
             <div>
               <Label htmlFor="lastName" className="text-sm font-medium">
-                นามสกุล <span className="text-destructive">*</span>
+                {t("profile.lastName")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange("lastName", e.target.value)}
-                placeholder="กรุณาใส่นามสกุล"
+                placeholder={t("profile.enterLastName")}
                 className="mt-1"
                 required
               />
@@ -258,7 +260,7 @@ export function ProfileSettingsCard() {
               className="flex items-center space-x-1 text-sm font-medium"
             >
               <Mail className="h-4 w-4" />
-              <span>อีเมล</span>
+              <span>{t("profile.email")}</span>
             </Label>
             <Input
               id="email"
@@ -276,13 +278,13 @@ export function ProfileSettingsCard() {
               className="flex items-center space-x-1 text-sm font-medium"
             >
               <Phone className="h-4 w-4" />
-              <span>เบอร์โทรศัพท์</span>
+              <span>{t("profile.phone")}</span>
             </Label>
             <Input
               id="phone"
               value={formData.phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
-              placeholder="เช่น 086-123-4567"
+              placeholder={t("profile.enterPhone")}
               className="mt-1"
             />
           </div>
@@ -293,13 +295,13 @@ export function ProfileSettingsCard() {
               className="flex items-center space-x-1 text-sm font-medium"
             >
               <MapPin className="h-4 w-4" />
-              <span>ที่อยู่</span>
+              <span>{t("profile.address")}</span>
             </Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
-              placeholder="ที่อยู่ปัจจุบันของคุณ"
+              placeholder={t("profile.enterAddress")}
               className="mt-1"
             />
           </div>
@@ -310,7 +312,7 @@ export function ProfileSettingsCard() {
               className="flex items-center space-x-1 text-sm font-medium"
             >
               <AlertCircle className="h-4 w-4" />
-              <span>ผู้ติดต่อฉุกเฉิน</span>
+              <span>{t("profile.emergencyContact")}</span>
             </Label>
             <Input
               id="emergencyContact"
@@ -318,7 +320,7 @@ export function ProfileSettingsCard() {
               onChange={(e) =>
                 handleInputChange("emergencyContact", e.target.value)
               }
-              placeholder="ชื่อและเบอร์โทรผู้ติดต่อฉุกเฉิน"
+              placeholder={t("profile.enterEmergencyContact")}
               className="mt-1"
             />
           </div>
@@ -326,28 +328,25 @@ export function ProfileSettingsCard() {
 
         {/* Action Buttons */}
         <div className="pt-4 border-t flex flex-col md:flex-row md:items-center md:space-x-4">
-          {/* ปุ่มเปิด ViewContractDialog */}
           <Button
             variant="outline"
             onClick={() => setContractDialogOpen(true)}
             className="w-full md:w-auto"
             size="lg"
           >
-            เปิดสัญญา (View Contract)
+            {t("profile.openContract")}
           </Button>
 
-          {/* ปุ่มบันทึก */}
           <Button
             onClick={handleSaveProfile}
             disabled={loading}
             className="w-full md:w-auto mb-3 md:mb-0"
             size="lg"
           >
-            {loading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
+            {loading ? t("profile.saving") : t("profile.save")}
           </Button>
         </div>
 
-        {/* Dialog เปิดดูสัญญา */}
         <ViewContractDialog
           open={contractDialogOpen}
           onOpenChange={setContractDialogOpen}

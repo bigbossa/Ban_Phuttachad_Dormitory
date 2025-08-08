@@ -19,6 +19,7 @@ import {
   TooltipProps,
 } from "recharts";
 import { useReportsData } from "../hooks/useReportsData";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 // Create custom tooltip component
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
@@ -34,17 +35,18 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
 };
 
 export const OccupancyChart = () => {
+  const { t } = useLanguage();
   const { occupancyData, isLoading } = useReportsData('occupancy');
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Occupancy Trends</CardTitle>
-          <CardDescription>Monthly occupancy rates for the dormitory</CardDescription>
+          <CardTitle>{t("reports.occupancyTitle")}</CardTitle>
+          <CardDescription>{t("reports.occupancyDesc")}</CardDescription>
         </CardHeader>       
          <CardContent className="h-[400px] flex items-center justify-center">
-          <div className="text-muted-foreground">Loading...</div>
+          <div className="text-muted-foreground">{t("loading")}</div>
         </CardContent>
       </Card>
     );
@@ -53,14 +55,14 @@ export const OccupancyChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Occupancy Trends</CardTitle>
-        <CardDescription>Monthly occupancy rates for the dormitory</CardDescription>
+        <CardTitle>{t("reports.occupancyTitle")}</CardTitle>
+        <CardDescription>{t("reports.occupancyDesc")}</CardDescription>
       </CardHeader>
       <CardContent className="h-[700px]">
         <ChartContainer
           config={{
             occupancy: {
-              label: "Occupancy Rate",
+              label: t("reports.occupancyRate"),
               theme: {
                 light: "#3b82f6",
                 dark: "#60a5fa",
@@ -92,7 +94,7 @@ export const OccupancyChart = () => {
               <Legend />
               <Bar
                 dataKey="occupancy"
-                name="Occupancy Rate"
+                name={t("reports.occupancyRate")}
                 fill="var(--color-occupancy)"
               />
             </BarChart>

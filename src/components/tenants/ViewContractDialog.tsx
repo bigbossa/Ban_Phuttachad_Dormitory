@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface ViewContractDialogProps {
   open: boolean;
@@ -26,6 +27,7 @@ export default function ViewContractDialog({
 }: ViewContractDialogProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!tenantId) {
@@ -66,28 +68,28 @@ export default function ViewContractDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>ดูไฟล์สัญญา</DialogTitle>
-          <DialogDescription>แสดงไฟล์สัญญาของผู้เช่า</DialogDescription>
+          <DialogTitle>{t("tenants.viewContractFile")}</DialogTitle>
+          <DialogDescription>{t("tenants.showContractFileDesc")}</DialogDescription>
         </DialogHeader>
 
         {loading ? (
-          <p className="text-center text-muted-foreground">กำลังโหลดไฟล์...</p>
+          <p className="text-center text-muted-foreground">{t("tenants.loadingFile")}</p>
         ) : fileUrl ? (
           fileUrl.endsWith(".pdf") ? (
             <iframe
               src={fileUrl}
-              title="PDF Contract"
+              title={t("tenants.pdfContractTitle")}
               className="w-full h-[600px] rounded border"
             />
           ) : (
             <img
               src={fileUrl}
-              alt="Contract"
+              alt={t("tenants.contractImageAlt")}
               className="w-full max-h-[600px] object-contain rounded border"
             />
           )
         ) : (
-          <p className="text-center text-muted-foreground">ไม่พบไฟล์สัญญา</p>
+          <p className="text-center text-muted-foreground">{t("tenants.fileNotFound")}</p>
         )}
       </DialogContent>
     </Dialog>

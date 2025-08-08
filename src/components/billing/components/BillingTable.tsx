@@ -18,6 +18,7 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface BillingRecord {
   id: string;
@@ -55,6 +56,7 @@ export default function BillingTable({
   onPayClick,
 }: BillingTableProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const isAdmin = user?.role === 'admin';
   const isStaff = user?.role === 'staff';
   const isTenant = user?.role === 'tenant';
@@ -122,9 +124,9 @@ export default function BillingTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>รายการบิล</CardTitle>
+        <CardTitle>{t("billing.listTitle")}</CardTitle>
         <CardDescription>
-          แสดง {visibleBillings.length} จาก {visibleBillings.length} รายการ
+          {t("billing.showCount", { count: visibleBillings.length })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -132,18 +134,18 @@ export default function BillingTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>เดือน</TableHead>
-                <TableHead>เลขที่ใบเสร็จ</TableHead>
-                <TableHead>ผู้เช่า</TableHead>
-                <TableHead>ห้อง</TableHead>
-                <TableHead>ค่าห้อง</TableHead>
-                <TableHead>ค่าน้ำ</TableHead>
-                <TableHead>ค่าไฟ</TableHead>
-                <TableHead>รวม</TableHead>
-                <TableHead>ครบกำหนด</TableHead>
-                <TableHead>สถานะ</TableHead>
-                <TableHead>วันที่ชำระ</TableHead>
-                <TableHead className="text-right">การดำเนินการ</TableHead>
+                <TableHead>{t("billing.month")}</TableHead>
+                <TableHead>{t("billing.receiptNumber")}</TableHead>
+                <TableHead>{t("billing.tenant")}</TableHead>
+                <TableHead>{t("billing.room")}</TableHead>
+                <TableHead>{t("billing.roomRent")}</TableHead>
+                <TableHead>{t("billing.waterCost")}</TableHead>
+                <TableHead>{t("billing.electricityCost")}</TableHead>
+                <TableHead>{t("billing.total")}</TableHead>
+                <TableHead>{t("billing.dueDate")}</TableHead>
+                <TableHead>{t("billing.status")}</TableHead>
+                <TableHead>{t("billing.paidDate")}</TableHead>
+                <TableHead className="text-right">{t("billing.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -156,11 +158,11 @@ export default function BillingTable({
                   <TableCell>{formatCurrency(billing.room_rent)}</TableCell>
                   <TableCell>
                     {formatCurrency(billing.water_cost)}
-                    <div className="text-xs text-muted-foreground">{billing.water_units} คน</div>
+                    <div className="text-xs text-muted-foreground">{billing.water_units} {t("billing.personUnit")}</div>
                   </TableCell>
                   <TableCell>
                     {formatCurrency(billing.electricity_cost)}
-                    <div className="text-xs text-muted-foreground">{billing.electricity_units} หน่วย</div>
+                    <div className="text-xs text-muted-foreground">{billing.electricity_units} {t("billing.electricityUnit")}</div>
                   </TableCell>
                   <TableCell className="font-bold">{formatCurrency(billing.sum)}</TableCell>
                   <TableCell>{formatDate(billing.due_date)}</TableCell>
@@ -175,22 +177,22 @@ export default function BillingTable({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => onViewDetails(billing)}>
-                          ดูรายละเอียด
+                          {t("billing.viewDetails")}
                         </DropdownMenuItem>
                        {(isAdmin || isStaff) && billing.status !== 'paid' && (
                           <DropdownMenuItem onClick={() => onEdit(billing)}>
-                            แก้ไข
+                            {t("billing.edit")}
                           </DropdownMenuItem>
                         )}
 
                         {isAdmin && billing.status !== 'paid' && (
                           <DropdownMenuItem onClick={() => handleConfirmMarkAsPaid(billing)}>
-                            ชำระแล้ว
+                            {t("billing.markAsPaid")}
                           </DropdownMenuItem>
                         )}
                         {isTenant && billing.status !== 'paid' && (
                           <DropdownMenuItem onClick={() => onPayClick(billing)}>
-                            ชำระเงิน
+                            {t("billing.pay")}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -201,7 +203,7 @@ export default function BillingTable({
               {visibleBillings.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-4">
-                    ไม่พบข้อมูลบิลที่ตรงกับเงื่อนไขการค้นหา
+                    {t("billing.noData")}
                   </TableCell>
                 </TableRow>
               )}
@@ -215,9 +217,9 @@ export default function BillingTable({
             onOpenChange={setOpenEditDialog}
             billing={selectedBilling}
             onSave={() => {
-            fetchBillings();
-            setOpenEditDialog(false);
-             }}
+              fetchBillings();
+              setOpenEditDialog(false);
+            }}
           />
         )}
 
@@ -225,13 +227,13 @@ export default function BillingTable({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                คุณแน่ใจหรือไม่ว่าต้องการยืนยันการชำระเงิน?
+                {t("billing.confirmMarkAsPaid")}
               </AlertDialogTitle>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+              <AlertDialogCancel>{t("billing.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmAction}>
-                ยืนยันการชำระเงิน
+                {t("billing.confirm")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

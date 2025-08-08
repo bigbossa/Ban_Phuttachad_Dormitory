@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 type Room = {
   id: string;
@@ -45,6 +46,7 @@ export default function RoomEditDialog({
   onRoomUpdated,
 }: RoomEditDialogProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [editRoom, setEditRoom] = useState<Room>(room);
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -102,41 +104,47 @@ export default function RoomEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Room {room.room_number}</DialogTitle>
-          <DialogDescription>Update the room information below.</DialogDescription>
+          <DialogTitle>
+            {t("rooms.edit")} {room.room_number}
+          </DialogTitle>
+          <DialogDescription>
+            {t("rooms.edit_description") || "Update the room information below."}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-roomNumber">Room Number</Label>
+            <Label htmlFor="edit-roomNumber">{t("rooms.number")}</Label>
             <Input
               id="edit-roomNumber"
               value={editRoom.room_number}
               onChange={(e) =>
                 setEditRoom({ ...editRoom, room_number: e.target.value })
               }
-              placeholder="101"
+              placeholder={t("rooms.number")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-type">Room Type</Label>
+            <Label htmlFor="edit-type">{t("rooms.type")}</Label>
             <Select
               value={editRoom.room_type}
               onValueChange={(value) => {
-                const capacity = value === "Standard Single" ? 1 : 2;
+                const capacity =
+                  value === t("Standard.Single") ? 1 :
+                  value === t("Standard.Double") ? 2 : 0;
                 setEditRoom({ ...editRoom, room_type: value, capacity });
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder={t("rooms.type") + "..."} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Standard Single">Standard Single</SelectItem>
-                <SelectItem value="Standard Double">Standard Double</SelectItem>
+                <SelectItem value="Standard Single">{t("Standard.Single")}</SelectItem>
+                <SelectItem value="Standard Double">{t("Standard.Double")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {/* <div className="space-y-2">
-            <Label htmlFor="edit-status">Status</Label>
+            <Label htmlFor="edit-status">{t("rooms.status")}</Label>
             <Select
               value={editRoom.status}
               onValueChange={(value) =>
@@ -144,17 +152,17 @@ export default function RoomEditDialog({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t("rooms.status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="vacant">Vacant</SelectItem>
-                <SelectItem value="occupied">Occupied</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="vacant">{t("satatus.vacant")}</SelectItem>
+                <SelectItem value="occupied">{t("satatus.occupied")}</SelectItem>
+                <SelectItem value="maintenance">{t("satatus.maintenance")}</SelectItem>
               </SelectContent>
             </Select>
           </div> */}
           <div className="space-y-2">
-            <Label htmlFor="edit-price">Price (THB)</Label>
+            <Label htmlFor="edit-price">{t("rooms.rent")}</Label>
             <Input
               id="edit-price"
               type="number"
@@ -162,21 +170,21 @@ export default function RoomEditDialog({
               onChange={(e) =>
                 setEditRoom({ ...editRoom, price: Number(e.target.value) })
               }
-              placeholder="3500"
+              placeholder={t("rooms.rent")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-capacity">Capacity</Label>
+            <Label htmlFor="edit-capacity">{t("rooms.capacity")}</Label>
             <Input
               id="edit-capacity"
               type="number"
               value={editRoom.capacity}
               disabled
-              placeholder="Auto-set by room type"
+              placeholder={t("rooms.capacity")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-floor">Floor</Label>
+            <Label htmlFor="edit-floor">{t("rooms.floor")}</Label>
             <Input
               id="edit-floor"
               type="number"
@@ -187,16 +195,16 @@ export default function RoomEditDialog({
                 else if (val > 4) val = 4;
                 setEditRoom({ ...editRoom, floor: val });
               }}
-              placeholder="1"
+              placeholder={t("rooms.floor")}
             />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel") || "Cancel"}
           </Button>
           <Button onClick={handleUpdateRoom} disabled={loading}>
-            {loading ? "Updating..." : "Update Room"}
+            {loading ? t("rooms.updating") || "Updating..." : t("rooms.update") || "Update Room"}
           </Button>
         </DialogFooter>
       </DialogContent>

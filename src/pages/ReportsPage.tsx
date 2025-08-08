@@ -20,17 +20,17 @@ const ReportsPage = () => {
   const getReportTitle = () => {
     switch(selectedReport) {
       case "occupancy":
-        return "Occupancy Trends Report";
+        return t("reports.occupancyTitle");
       case "revenue":
-        return "Revenue Analysis Report";
+        return t("reports.revenueTitle");
       case "rooms":
-        return "Room Type Distribution Report";
+        return t("reports.roomTypeTitle");
       case "repairs":
-        return "Repair Request Analysis Report";
+        return t("reports.repairTitle");
       case "events":
-        return "Event Attendance Report";
+        return t("reports.eventTitle");
       default:
-        return "Report";
+        return t("reports.defaultTitle");
     }
   };
 
@@ -130,8 +130,8 @@ const ReportsPage = () => {
     <div className="animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Reports</h1>
-          <p className="text-muted-foreground">View and analyze dormitory data</p>
+          <h1 className="text-2xl font-bold">{t("reports.title")}</h1>
+          <p className="text-muted-foreground">{t("reports.subtitle")}</p>
         </div>
         <div className="mt-4 md:mt-0 space-x-2">
           <Button 
@@ -145,7 +145,7 @@ const ReportsPage = () => {
             ) : (
               <Download className="h-4 w-4" />
             )}
-            {isExporting ? 'Exporting...' : 'Export PDF'}
+            {isExporting ? t("reports.exporting") : t("reports.exportPdf")}
           </Button>
         </div>
       </div>

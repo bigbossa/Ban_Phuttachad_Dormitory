@@ -11,6 +11,7 @@ import { DoorClosed, Users, MapPin, Banknote, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 type Room = {
   id: string;
@@ -42,8 +43,9 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
   const [currentTenants, setCurrentTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(false);
 
-const { settings } = useSystemSettings();
+  const { settings } = useSystemSettings();
   const roomRent = settings.depositRate || 0;
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open && room.id) {
@@ -130,31 +132,35 @@ const { settings } = useSystemSettings();
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <DoorClosed className="h-5 w-5" />
-            ห้อง {room.room_number} รายละเอียด
+            {t("rooms.detailsTitle", { room_number: room.room_number }) || `${t("rooms.details")} ${room.room_number}`}
           </DialogTitle>
-          <DialogDescription>ข้อมูลทั้งหมดของห้องนี้</DialogDescription>
+          <DialogDescription>{t("rooms.detailsDesc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">สถานะ</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("rooms.status")}</span>
             <Badge className={`capitalize ${getStatusColor(room.status)}`}>
               {room.status === "vacant"
-                ? "ว่าง"
+                ? t("satatus.vacant")
                 : room.status === "occupied"
-                ? "มีผู้เช่า"
-                : "ซ่อมแซม"}
+                ? t("satatus.occupied")
+                : t("satatus.maintenance")}
             </Badge>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">ประเภทห้อง</span>
-            <span className="text-sm font-medium">{room.room_type}</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("rooms.type")}</span>
+            <span className="text-sm font-medium">
+              {t(`rooms.type.${room.room_type}`) !== `rooms.type.${room.room_type}`
+                ? t(`rooms.type.${room.room_type}`)
+                : t(room.room_type)}
+            </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Banknote className="h-4 w-4" /> ค่าเช่ารายเดือน
+              <Banknote className="h-4 w-4" /> {t("rooms.rent")}
             </span>
             <span className="text-sm font-bold text-green-600">
               {formatPrice(roomRent)}
@@ -163,14 +169,14 @@ const { settings } = useSystemSettings();
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" /> ความจุ
+              <Users className="h-4 w-4" /> {t("rooms.capacity")}
             </span>
-            <span className="text-sm font-medium">{room.capacity} คน</span>
+            <span className="text-sm font-medium">{room.capacity} {t("rooms.person") || "คน"}</span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <MapPin className="h-4 w-4" /> ชั้น
+              <MapPin className="h-4 w-4" /> {t("rooms.floor")}
             </span>
             <span className="text-sm font-medium">{room.floor}</span>
           </div>
@@ -178,25 +184,25 @@ const { settings } = useSystemSettings();
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">ผู้เช่าปัจจุบัน</span>
+              <span className="text-sm font-medium text-muted-foreground">{t("rooms.currentTenants")}</span>
             </div>
 
             {loading ? (
-              <div className="text-sm text-muted-foreground">กำลังโหลด...</div>
+              <div className="text-sm text-muted-foreground">{t("loading")}</div>
             ) : currentTenants.length > 0 ? (
               currentTenants
                 .filter((tenant) => tenant.action === "1")
                 .slice()
                 .sort((a, b) => {
                   const getPriority = (res: any) =>
-                    res.residents === "ผู้เช่า" ? 0 : res.residents === "ลูกเช่า" ? 1 : 2;
+                    res.residents === t("rooms.mainTenant") ? 0 : res.residents === t("rooms.subTenant") ? 1 : 2;
                   return getPriority(a) - getPriority(b);
                 })
                 .map((tenant) => {
                   return (
                     <div key={tenant.id} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
                       <div className="text-sm font-semibold text-muted-foreground">
-                        {tenant.residents === "ผู้เช่า" ? "ผู้เช่าหลัก" : "ลูกเช่า"}
+                        {tenant.residents === "ผู้เช่า" ? t("rooms.mainTenant") : t("rooms.subTenant")}
                       </div>
                       <div className="flex items-center gap-3">
                         {renderAvatar(`${tenant.first_name} ${tenant.last_name}`)}
@@ -213,7 +219,7 @@ const { settings } = useSystemSettings();
                   );
                 })
             ) : (
-              <div className="text-sm text-muted-foreground">ไม่มีผู้เช่าในปัจจุบัน</div>
+              <div className="text-sm text-muted-foreground">{t("rooms.noCurrentTenant")}</div>
             )}
           </div>
 

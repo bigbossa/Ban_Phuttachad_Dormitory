@@ -9,11 +9,13 @@ import { useBillingDetail } from "@/components/billing/hooks/useBillingDetail";
 import * as XLSX from "xlsx";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 const BillingPage = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const { toast } = useToast();
-  
+  const { t } = useLanguage();
+
   const {
     searchTerm,
     setSearchTerm,
@@ -39,17 +41,17 @@ const BillingPage = () => {
   } = useBillingDetail();
   const exportToExcel = () => {
     const data = filteredBillings.map((billing) => ({
-      "เดือน": new Date(billing.billing_month).toLocaleDateString("th-TH", { year: "numeric", month: "long" }),
-      "เลขที่ใบเสร็จ": billing.receipt_number || "-",
-      "ชื่อผู้เช่า": `${billing.tenants.first_name} ${billing.tenants.last_name}`,
-      "ห้อง": billing.rooms.room_number,
-      "ค่าห้อง": billing.room_rent,
-      "ค่าน้ำ": billing.water_cost,
-      "ค่าไฟ": billing.electricity_cost,
-      "รวม": billing.sum,
-      "ครบกำหนด": new Date(billing.due_date).toLocaleDateString("th-TH"),
-      "สถานะ": billing.status,
-      "วันที่ชำระ": billing.paid_date ? new Date(billing.paid_date).toLocaleDateString("th-TH") : "ยังไม่ได้ชำระ"
+      [t("billing.month")]: new Date(billing.billing_month).toLocaleDateString("th-TH", { year: "numeric", month: "long" }),
+      [t("billing.receiptNumber")]: billing.receipt_number || "-",
+      [t("billing.tenantName")]: `${billing.tenants.first_name} ${billing.tenants.last_name}`,
+      [t("billing.room")]: billing.rooms.room_number,
+      [t("billing.roomRent")]: billing.room_rent,
+      [t("billing.waterCost")]: billing.water_cost,
+      [t("billing.electricityCost")]: billing.electricity_cost,
+      [t("billing.total")]: billing.sum,
+      [t("billing.dueDate")]: new Date(billing.due_date).toLocaleDateString("th-TH"),
+      [t("billing.status")]: billing.status,
+      [t("billing.paidDate")]: billing.paid_date ? new Date(billing.paid_date).toLocaleDateString("th-TH") : t("billing.notPaid"),
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -61,8 +63,8 @@ const BillingPage = () => {
     setShowPaymentDialog(false);
     await fetchBillings();
     toast({
-      title: "ชำระเงินสำเร็จ",
-      description: "การชำระเงินเสร็จสมบูรณ์",
+      title: t("billing.paymentSuccess"),
+      description: t("billing.paymentSuccessDesc"),
     });
   };
 

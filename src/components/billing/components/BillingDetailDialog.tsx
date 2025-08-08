@@ -12,6 +12,7 @@ import BillingStatusBadge from "../BillingStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
 import React from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface BillingRecord {
   id: string;
@@ -48,6 +49,7 @@ export default function BillingDetailDialog({
   onOpenChange, 
   billing 
 }: BillingDetailDialogProps) {
+  const { t } = useLanguage();
   if (!billing) return null;
 
   const printRef = React.useRef<HTMLDivElement>(null);
@@ -84,18 +86,18 @@ export default function BillingDetailDialog({
           <div className="flex items-center justify-between w-full">
             <div>
               <DialogTitle className="flex items-center gap-2">
-                รายละเอียดบิล - {formatMonth(billing.billing_month)}
+                {t("billing.detailTitle")} - {formatMonth(billing.billing_month)}
                 <BillingStatusBadge status={billing.status} />
               </DialogTitle>
               <DialogDescription asChild>
                 <div className="space-y-1">
-                  <p>เลขที่ใบเสร็จ: {billing.receipt_number || '-'}</p>
-                  <p>บิลสำหรับห้อง {billing.rooms.room_number} - {fullname}</p>
+                  <p>{t("billing.receiptNumber")}: {billing.receipt_number || '-'}</p>
+                  <p>{t("billing.forRoom")} {billing.rooms.room_number} - {fullname}</p>
                 </div>
               </DialogDescription>
               <Button variant="outline" size="sm" onClick={handlePrint} className="ml-4">
                 <Printer className="mr-2" size={16} />
-                ปริ้นใบเสร็จ
+                {t("billing.printReceipt")}
               </Button>
             </div>
           </div>
@@ -104,17 +106,19 @@ export default function BillingDetailDialog({
           {/* ข้อมูลผู้เช่าและห้อง */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">ข้อมูลผู้เช่า</CardTitle>
-            </CardHeader>            <CardContent className="grid grid-cols-2 gap-4">
+              <CardTitle className="text-lg">{t("billing.tenantInfo")}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">เลขที่ใบเสร็จ</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.receiptNumber")}</p>
                 <p className="text-base">{billing.receipt_number || '-'}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">หมายเลขห้อง</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.roomNumber")}</p>
                 <p className="text-base">{billing.rooms.room_number}</p>
-              </div>              <div>
-                <p className="text-sm font-medium text-muted-foreground">ชื่อผู้เช่า</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.tenantName")}</p>
                 <p className="text-base">{fullname}</p>
               </div>
             </CardContent>
@@ -123,22 +127,22 @@ export default function BillingDetailDialog({
           {/* รายละเอียดค่าใช้จ่าย */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">รายละเอียดค่าใช้จ่าย</CardTitle>
+              <CardTitle className="text-lg">{t("billing.expenseDetail")}</CardTitle>
               <CardDescription>
-                ประจำเดือน {formatMonth(billing.billing_month)}
+                {t("billing.forMonth", { month: formatMonth(billing.billing_month) })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span>ค่าห้อง</span>
+                <span>{t("billing.roomRent")}</span>
                 <span className="font-medium">{formatCurrency(billing.room_rent)}</span>
               </div>
               
               <div className="flex justify-between items-center">
                 <div>
-                  <span>ค่าน้ำ</span>
+                  <span>{t("billing.waterCost")}</span>
                   <span className="text-sm text-muted-foreground ml-2">
-                    ({billing.water_units} คน × 100 บาท)
+                    ({billing.water_units} {t("billing.personUnit")} × 100 {t("billing.baht")})
                   </span>
                 </div>
                 <span className="font-medium">{formatCurrency(billing.water_cost)}</span>
@@ -146,9 +150,9 @@ export default function BillingDetailDialog({
               
               <div className="flex justify-between items-center">
                 <div>
-                  <span>ค่าไฟ</span>
+                  <span>{t("billing.electricityCost")}</span>
                   <span className="text-sm text-muted-foreground ml-2">
-                    ({billing.electricity_units} หน่วย × 8 บาท)
+                    ({billing.electricity_units} {t("billing.electricityUnit")} × 8 {t("billing.baht")})
                   </span>
                 </div>
                 <span className="font-medium">{formatCurrency(billing.electricity_cost)}</span>
@@ -157,7 +161,7 @@ export default function BillingDetailDialog({
               <Separator />
               
               <div className="flex justify-between items-center text-lg font-bold">
-                <span>รวมทั้งสิ้น</span>
+                <span>{t("billing.total")}</span>
                 <span className="text-primary">{formatCurrency(billing.sum)}</span>
               </div>
             </CardContent>
@@ -166,27 +170,27 @@ export default function BillingDetailDialog({
           {/* ข้อมูลการชำระเงิน */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">ข้อมูลการชำระเงิน</CardTitle>
+              <CardTitle className="text-lg">{t("billing.paymentInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">วันครบกำหนดชำระ</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.dueDate")}</p>
                 <p className="text-base">{formatDate(billing.due_date)}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">วันที่ชำระ</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.paidDate")}</p>
                 <p className="text-base">
-                  {billing.paid_date ? formatDate(billing.paid_date) : "ยังไม่ได้ชำระ"}
+                  {billing.paid_date ? formatDate(billing.paid_date) : t("billing.notPaid")}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">สถานะ</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.status")}</p>
                 <div className="mt-1">
                   <BillingStatusBadge status={billing.status} />
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">วันที่สร้างบิล</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("billing.createdAt")}</p>
                 <p className="text-base">{formatDate(billing.created_at)}</p>
               </div>
             </CardContent>

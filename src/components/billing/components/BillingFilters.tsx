@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Filter } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface BillingFiltersProps {
   searchTerm: string;
@@ -33,6 +34,8 @@ export default function BillingFilters({
   selectedMonth,
   onMonthChange
 }: BillingFiltersProps) {
+  const { t } = useLanguage();
+
   // Format date to YYYY-MM for input type="month"
   const formatDateForInput = (date: Date) => {
     return date.toISOString().slice(0, 7);
@@ -47,15 +50,15 @@ export default function BillingFilters({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>ค้นหาและกรอง</CardTitle>
+        <CardTitle>{t("billing.filtersTitle")}</CardTitle>
         <CardDescription>
-          ค้นหาบิลตามชื่อผู้เช่าหรือหมายเลขห้อง และกรองตามเดือน/ปี
+          {t("billing.filtersDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-4">
           <Input 
-            placeholder="ค้นหาบิล..." 
+            placeholder={t("billing.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="md:max-w-xs"
@@ -65,13 +68,13 @@ export default function BillingFilters({
               <Filter size={16} className="text-muted-foreground" />
               <Select value={statusFilter} onValueChange={onStatusFilterChange}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="กรองตามสถานะ" />
+                  <SelectValue placeholder={t("billing.statusFilter")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">ทุกสถานะ</SelectItem>
-                  <SelectItem value="paid">ชำระแล้ว</SelectItem>
-                  <SelectItem value="pending">รอชำระ</SelectItem>
-                  <SelectItem value="overdue">เกินกำหนด</SelectItem>
+                  <SelectItem value="all">{t("billing.status_all")}</SelectItem>
+                  <SelectItem value="paid">{t("billing.status_paid")}</SelectItem>
+                  <SelectItem value="pending">{t("billing.status_pending")}</SelectItem>
+                  <SelectItem value="overdue">{t("billing.status_overdue")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

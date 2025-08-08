@@ -1,4 +1,3 @@
-
 import { useTheme } from "@/providers/ThemeProvider";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,35 +8,35 @@ import { Palette, Sun, Moon, Globe } from "lucide-react";
 
 export function ThemeSettingsCard() {
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Palette className="h-5 w-5" />
-          <span>ธีมและภาษา</span>
+          <span>{t("theme.title")}</span>
         </CardTitle>
         <CardDescription>
-          ปรับแต่งรูปลักษณ์และภาษาของระบบ
+          {t("theme.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">
-          <Label className="text-sm font-medium">ธีม</Label>
+          <Label className="text-sm font-medium">{t("theme.theme")}</Label>
           <RadioGroup value={theme} onValueChange={setTheme}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="light" id="light" />
               <Label htmlFor="light" className="flex items-center space-x-2 cursor-pointer">
                 <Sun className="h-4 w-4" />
-                <span>สว่าง</span>
+                <span>{t("theme.light")}</span>
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="dark" id="dark" />
               <Label htmlFor="dark" className="flex items-center space-x-2 cursor-pointer">
                 <Moon className="h-4 w-4" />
-                <span>มืด</span>
+                <span>{t("theme.dark")}</span>
               </Label>
             </div>
           </RadioGroup>
@@ -46,16 +45,16 @@ export function ThemeSettingsCard() {
         <div className="space-y-3">
           <Label className="text-sm font-medium flex items-center space-x-2">
             <Globe className="h-4 w-4" />
-            <span>ภาษา</span>
+            <span>{t("theme.language")}</span>
           </Label>
           <RadioGroup value={language} onValueChange={setLanguage}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="th" id="thai" />
-              <Label htmlFor="thai" className="cursor-pointer">ไทย</Label>
+              <Label htmlFor="thai" className="cursor-pointer">{t("theme.thai")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="en" id="english" />
-              <Label htmlFor="english" className="cursor-pointer">English</Label>
+              <Label htmlFor="english" className="cursor-pointer">{t("theme.english")}</Label>
             </div>
           </RadioGroup>
         </div>
@@ -69,7 +68,7 @@ export function ThemeSettingsCard() {
               className={theme === 'light' ? 'border-primary' : ''}
             >
               <Sun className="mr-2 h-4 w-4" />
-              ธีมสว่าง
+              {t("theme.lightTheme")}
             </Button>
             <Button 
               variant="outline" 
@@ -78,7 +77,7 @@ export function ThemeSettingsCard() {
               className={theme === 'dark' ? 'border-primary' : ''}
             >
               <Moon className="mr-2 h-4 w-4" />
-              ธีมมืด
+              {t("theme.darkTheme")}
             </Button>
           </div>
         </div>

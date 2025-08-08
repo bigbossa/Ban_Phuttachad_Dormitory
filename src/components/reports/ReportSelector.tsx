@@ -19,44 +19,45 @@ import {
   Calendar,
   FileBarChart,
 } from "lucide-react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface ReportItem {
   id: string;
-  title: string;
+  titleKey: string;
   icon: React.ElementType;
-  description: string;
+  descriptionKey: string;
 }
 
 const availableReports: ReportItem[] = [
   {
     id: "occupancy",
-    title: "Occupancy Trends",
+    titleKey: "reports.occupancyTitle",
     icon: Users,
-    description: "Monthly dormitory occupancy rates"
+    descriptionKey: "reports.occupancyDesc"
   },
   {
     id: "revenue",
-    title: "Revenue Analysis",
+    titleKey: "reports.revenueTitle",
     icon: DollarSign,
-    description: "Monthly revenue breakdown"
+    descriptionKey: "reports.revenueDesc"
   },
   {
     id: "rooms",
-    title: "Room Type Distribution",
+    titleKey: "reports.roomTypeTitle",
     icon: FileBarChart,
-    description: "Distribution of different room types"
+    descriptionKey: "reports.roomTypeDesc"
   },
   {
     id: "repairs",
-    title: "Repair Request Analysis",
+    titleKey: "reports.repairTitle",
     icon: Wrench,
-    description: "Types of repair requests received"
+    descriptionKey: "reports.repairDesc"
   },
   {
     id: "events",
     icon: Calendar,
-    title: "Event Attendance",
-    description: "Dormitory event participation metrics"
+    titleKey: "reports.eventTitle",
+    descriptionKey: "reports.eventDesc"
   },
 ];
 
@@ -71,34 +72,39 @@ export const ReportSelector = ({
   selectedReport, 
   setSelectedReport
 }: ReportSelectorProps) => {
+  const { t } = useLanguage();
+
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Report Options</CardTitle>
+        <CardTitle>{t("reports.options")}</CardTitle>
         <CardDescription>
-          Select the report type
+          {t("reports.selectType")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div>
-          <label className="text-sm font-medium mb-1 block">Report Type</label>
+          <label className="text-sm font-medium mb-1 block">{t("reports.type")}</label>
           <Select value={selectedReport} onValueChange={setSelectedReport}>
             <SelectTrigger>
-              <SelectValue placeholder="Select report type" />
+              <SelectValue placeholder={t("reports.selectTypePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {availableReports.map(report => (
                 <SelectItem key={report.id} value={report.id}>
                   <span className="flex items-center gap-2">
                     <report.icon className="h-4 w-4" />
-                    {report.title}
+                    {t(report.titleKey)}
                   </span>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground mt-1">
-            {availableReports.find(r => r.id === selectedReport)?.description || 'Select a report type to view data'}
+            {t(
+              availableReports.find(r => r.id === selectedReport)?.descriptionKey ||
+              "reports.selectTypeDesc"
+            )}
           </p>
         </div>
       </CardContent>

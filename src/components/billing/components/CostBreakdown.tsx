@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Zap, Droplet, Home } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface CostBreakdownProps {
   roomId: string;
@@ -40,52 +41,54 @@ export default function CostBreakdown({
   onValidityChange,
 }: CostBreakdownProps) {
   const [isValid, setIsValid] = useState(true);
-
   useEffect(() => {
     const valid = !isNaN(currentMeterReading) && currentMeterReading >= previousMeterReading;
     setIsValid(valid);
     onValidityChange?.(valid);
   }, [currentMeterReading, previousMeterReading]);
-
+  const { t } = useLanguage();
   return (
     <div className="overflow-y-auto max-h-[35vh] sm:max-w-[650px] md:max-w-[750px] lg:max-w-[850px]">
-      <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
-        <h3 className="font-bold text-xl mb-2">ห้อง {room_number}</h3>
-        <h4 className="font-semibold text-lg">รายละเอียดค่าใช้จ่าย</h4>
+      <div className="border rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-card">
+        <h3 className="font-bold text-xl mb-2 dark:text-foreground">{t("billing.roomNumber")}: {room_number}</h3>
+        <h4 className="font-semibold text-lg dark:text-foreground">{t("billing.expenseDetail")}</h4>
 
-        <div className="flex items-center justify-between p-3 bg-white rounded border">
+        <div className="flex items-center justify-between p-3 bg-white dark:bg-background rounded border">
           <div className="flex items-center gap-2">
             <Home className="h-4 w-4 text-blue-600" />
-            <span>ค่าห้อง</span>
+            <span className="dark:text-foreground">{t("billing.roomRent")}</span>
           </div>
-          <span className="font-medium">{roomRent.toLocaleString()} บาท</span>
+          <span className="font-medium dark:text-foreground">{roomRent.toLocaleString()} {t("billing.baht")}</span>
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between p-3 bg-white rounded border">
+          <div className="flex items-center justify-between p-3 bg-white dark:bg-background rounded border">
             <div className="flex items-center gap-2">
               <Droplet className="h-4 w-4 text-blue-600" />
-              <span>ค่าน้ำ ({occupantCount} คน × {WATER_RATE} บาท/หัว)</span>
+              <span className="dark:text-foreground">
+                {t("billing.waterCost")} ({occupantCount} {t("billing.personUnit")} × {WATER_RATE} {t("billing.baht")}/{t("billing.personUnit")})
+              </span>
             </div>
-            <span className="font-medium">{(occupantCount * WATER_RATE).toLocaleString()} บาท</span>
+            <span className="font-medium dark:text-foreground">{(occupantCount * WATER_RATE).toLocaleString()} {t("billing.baht")}</span>
           </div>
         </div>
 
         <div className="space-y-2">
-          <div className="p-3 bg-white rounded border">
+          <div className="p-3 bg-white dark:bg-background rounded border">
             <div className="flex items-center gap-2 mb-3">
               <Zap className="h-4 w-4 text-yellow-600" />
-              <span>ค่าไฟ (หน่วยละ {ELECTRICITY_RATE} บาท)</span>
+              <span className="dark:text-foreground">
+                {t("billing.electricityCost")} ({t("billing.electricityUnit")} × {ELECTRICITY_RATE} {t("billing.baht")}/{t("billing.electricityUnit")})
+              </span>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-card rounded">
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600">
-                    เลขมิเตอร์เก่า:
-                    <span className="font-medium ml-1">{previousMeterReading}</span>
+                  <span className="text-sm text-gray-600 dark:text-foreground">
+                    {t("billing.previousMeter")}: <span className="font-medium ml-1 dark:text-foreground">{previousMeterReading}</span>
                   </span>
-                  <span className="text-sm text-gray-600">เลขมิเตอร์ใหม่:</span>
+                  <span className="text-sm text-gray-600 dark:text-foreground">{t("billing.currentMeter")}:</span>
                   <Input
                     type="number"
                     value={currentMeterReading}
@@ -98,28 +101,32 @@ export default function CostBreakdown({
                     }}
                     min={previousMeterReading}
                     step="1"
-                    className="w-24"
+                    className="w-24 dark:bg-background dark:text-foreground"
                   />
                 </div>
               </div>
               {currentMeterReading < previousMeterReading && (
-                <p className="text-red-500 text-sm ml-2">* กรุณากรอกเลขมิเตอร์ใหม่ให้ถูกต้อง</p>
+                <p className="text-red-500 text-sm ml-2">
+                  * {t("billing.meterError")}
+                </p>
               )}
-              <div className="p-2 bg-gray-50 rounded border flex justify-between items-center mt-2">
-                <span className="text-sm text-gray-600">หน่วยที่ใช้:</span>
-                <span className="font-medium">{electricityUnits.toFixed(1)} หน่วย = {electricityCost.toLocaleString()} บาท</span>
+              <div className="p-2 bg-gray-50 dark:bg-card rounded border flex justify-between items-center mt-2">
+                <span className="text-sm text-gray-600 dark:text-foreground">{t("billing.electricityUnitUsed")}:</span>
+                <span className="font-medium dark:text-foreground">
+                  {electricityUnits.toFixed(1)} {t("billing.electricityUnit")} = {electricityCost.toLocaleString()} {t("billing.baht")}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-3 bg-green-50 rounded border-2 border-green-200">
-          <span className="font-semibold text-lg">รวมทั้งหมด</span>
-          <span className="font-bold text-xl text-green-600">{totalAmount.toLocaleString()} บาท</span>
+        <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900 rounded border-2 border-green-200 dark:border-green-700">
+          <span className="font-semibold text-lg dark:text-foreground">{t("billing.total")}</span>
+          <span className="font-bold text-xl text-green-600 dark:text-green-300">{totalAmount.toLocaleString()} {t("billing.baht")}</span>
         </div>
 
-        <div className="text-sm text-gray-600 p-2 bg-blue-50 rounded">
-          หมายเหตุ: บิลนี้สำหรับทั้งห้อง รวม {occupantCount} คน
+        <div className="text-sm text-gray-600 dark:text-foreground p-2 bg-blue-50 dark:bg-blue-900 rounded">
+          {t("billing.noteRoomTotal", { count: occupantCount })}
         </div>
       </div>
     </div>

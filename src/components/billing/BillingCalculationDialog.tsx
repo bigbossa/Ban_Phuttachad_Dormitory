@@ -12,6 +12,7 @@ import { useBillingCalculation } from "./hooks/useBillingCalculation";
 import BillingDateInputs from "./components/BillingDateInputs";
 import CostBreakdown from "./components/CostBreakdown";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface BillingCalculationDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export default function BillingCalculationDialog({
   const [currentMeterReadingByRoom, setCurrentMeterReadingByRoom] = useState<Record<string, number>>({});
   const [validityByRoom, setValidityByRoom] = useState<Record<string, boolean>>({});
   const { settings } = useSystemSettings();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (roomOccupancies?.length) {
@@ -89,9 +91,11 @@ export default function BillingCalculationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px]">
         <DialogHeader className="sticky top-0 bg-background z-999 pb-4 border-b">
-          <DialogTitle>คำนวณค่าใช้จ่าย (ตามห้อง)</DialogTitle>
+          <DialogTitle>
+            {t("billing.calculateTitle")}
+          </DialogTitle>
           <DialogDescription>
-            คำนวณค่าห้อง + ค่าน้ำ (จำนวนคน × {WATER_RATE} บาท) + ค่าไฟ (หน่วยละ {ELECTRICITY_RATE} บาท)
+            {t("billing.calculateDesc", { water: WATER_RATE, elec: ELECTRICITY_RATE })}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,10 +151,10 @@ export default function BillingCalculationDialog({
 
         <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
           <Button variant="outline" onClick={() => { onOpenChange(false); resetForm(); }}>
-            ยกเลิก
+            {t("common.cancel")}
           </Button>
           <Button onClick={onCreate} disabled={loading || !isFormValid}>
-            {loading ? "กำลังสร้าง..." : "สร้างบิล"}
+            {loading ? t("billing.creating") : t("billing.createBill")}
           </Button>
         </DialogFooter>
       </DialogContent>

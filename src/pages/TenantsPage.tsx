@@ -159,13 +159,13 @@ const TenantsPage = ({ children }) => {
   };
 
   const handleDeleteTenant = (tenant) => {
-    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบ ${tenant.first_name} ${tenant.last_name}?`)) {
+    if (confirm(`${t("tenants.deleteConfirm", { name: `${tenant.first_name} ${tenant.last_name}` })}`)) {
       deleteTenant(tenant.id);
     }
   };
 
   const handleDeleteRentedchild = (tenant) => {
-    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบลูกเช่าของ ${tenant.first_name} ${tenant.last_name}?`)) {
+    if (confirm(`${t("tenants.deleteChildConfirm", { name: `${tenant.first_name} ${tenant.last_name}` })}`)) {
       deleteRentedchild(tenant.id);
     }
   };
@@ -176,7 +176,7 @@ const TenantsPage = ({ children }) => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">กำลังโหลดข้อมูล...</p>
+            <p className="mt-2 text-muted-foreground">{t("loadingTenants")}</p>
           </div>
         </div>
       </div>
@@ -185,87 +185,87 @@ const TenantsPage = ({ children }) => {
 
   return (
     <>
-     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>จัดการผู้ใช้ระบบ</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{t("manageSystemUsers")}</DialogTitle>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
 
-      {/* User Create Dialog */}
-      <UserCreateDialog
-        open={createUserOpen}
-        onOpenChange={setCreateUserOpen}
-      />
-      
-      <div className="animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">จัดการผู้เช่า</h1>
-            <p className="text-muted-foreground">จัดการข้อมูลผู้เช่าและห้องที่เช่าในอพาร์ตเมนต์</p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
-              <Button
-                onClick={() => {
-                  setIsOpen(false);
-                  setCreateUserOpen(true);
-                }}
-                className="flex items-center gap-2"
-              >
-                <Plus size={16} />
-                เพิ่มผู้เช่าใหม่
-              </Button>
-            </div>
+    {/* User Create Dialog */}
+    <UserCreateDialog
+      open={createUserOpen}
+      onOpenChange={setCreateUserOpen}
+    />
+
+    <div className="animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">{t("tenants.management")}</h1>
+          <p className="text-muted-foreground">{t("tenants.managementDesc")}</p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
+            <Button
+              onClick={() => {
+                setIsOpen(false);
+                setCreateUserOpen(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <Plus size={16} />
+              {t("tenants.add")}
+            </Button>
           </div>
         </div>
+      </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>ค้นหาผู้เช่า</CardTitle>
-            <CardDescription>
-              ค้นหาผู้เช่าด้วยชื่อ อีเมล เบอร์โทร หรือหมายเลขห้อง
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input 
-              placeholder="ค้นหาผู้เช่า..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-md"
-            />
-          </CardContent>
-        </Card>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t("tenants.searchTitle")}</CardTitle>
+          <CardDescription>
+            {t("tenants.searchDesc")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Input 
+            placeholder={t("tenants.searchPlaceholder")} 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-md"
+          />
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>รายชื่อผู้เช่า</CardTitle>
-            <CardDescription>
-              แสดง {filteredTenants.length} จาก {tenants.filter(t =>  t.action == "1").length} รายการ
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ผู้เช่า</TableHead>
-                    <TableHead>เบอร์โทร</TableHead>
-                    <TableHead>ห้องที่เช่า</TableHead>
-                    <TableHead>ที่อยู่</TableHead>
-                    <TableHead>วันที่เพิ่ม</TableHead>
-                    <TableHead className="w-[100px]">จัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-               <TableBody>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("tenants.listTitle")}</CardTitle>
+          <CardDescription>
+            {t("tenants.showCount", { count: filteredTenants.length, total: tenants.filter(t =>  t.action == "1").length })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("tenants.name")}</TableHead>
+                  <TableHead>{t("tenants.phone")}</TableHead>
+                  <TableHead>{t("tenants.room")}</TableHead>
+                  <TableHead>{t("tenants.address")}</TableHead>
+                  <TableHead>{t("tenants.createdAt")}</TableHead>
+                  <TableHead className="w-[100px]">{t("Actions.text")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredTenants.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <Users className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">ไม่มีข้อมูลผู้เช่า</p>
+                        <p className="text-muted-foreground">{t("tenants.noData")}</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -297,7 +297,7 @@ const TenantsPage = ({ children }) => {
                             return (
                               <div key={type}>
                                 <h6 className="text-sx font-semibold text-primary mt-2">
-                                  {type === "ผู้เช่า" ? "ผู้เช่าหลัก" : "ลูกเช่า"}
+                                  {type === "ผู้เช่า" ? t("tenants.main") : t("tenants.child")}
                                 </h6>
                                 {filtered.map((tenant) => {
                                   const fullName = `${tenant.first_name} ${tenant.last_name}`;
@@ -353,15 +353,15 @@ const TenantsPage = ({ children }) => {
                             <Home className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <Badge variant="secondary" className="text-xs">
-                                ห้อง {roomInfo.room_number}
+                                {t("tenants.room")} {roomInfo.room_number}
                               </Badge>
                               <p className="text-xs text-muted-foreground mt-1">
-                                {roomInfo.room_type} • ชั้น {roomInfo.floor}
+                                {roomInfo.room_type} • {t("tenants.floor")} {roomInfo.floor}
                               </p>
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">ไม่ได้เช่าห้อง</span>
+                          <span className="text-muted-foreground">{t("tenants.notRented")}</span>
                         )}
                       </TableCell>
 
@@ -416,9 +416,8 @@ const TenantsPage = ({ children }) => {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleViewDetails(firstTenant)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              ดูรายละเอียด
+                              {t("view_details")}
                             </DropdownMenuItem>
-
                             {!isRoomFull && firstTenant.current_room && (
                               <DropdownMenuItem
                                 onClick={() => {
@@ -432,44 +431,27 @@ const TenantsPage = ({ children }) => {
                                 }}
                               >
                                 <UserPlus className="mr-2 h-4 w-4" />
-                                เพิ่มลูกเช่า
+                                {t("tenants.addChild")}
                               </DropdownMenuItem>
                             )}
-
-                            {/* {firstTenant.image ? (
-                              <DropdownMenuItem onClick={() => handleViewContractImage(firstTenant)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                ดูรูปภาพสัญญา
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onClick={() => handleAddContractImage(firstTenant)}>
-                                <Plus className="mr-2 h-4 w-4" />
-                                เพิ่มรูปภาพสัญญา
-                              </DropdownMenuItem>
-                            )} */}
                             {firstTenant.image && (
                               <DropdownMenuItem onClick={() => handleViewContractImage(firstTenant)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                ดูรูปภาพสัญญา
+                                {t("tenants.viewContractImage")}
                               </DropdownMenuItem>
                             )}
-
-
                             <DropdownMenuItem onClick={() => handleEditTenant(firstTenant)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              แก้ไข
+                              {t("edit")}
                             </DropdownMenuItem>
-
                             <DropdownMenuItem
                               onClick={() => handleDeleteTenant(firstTenant)}
                               className="text-destructive"
                               disabled={isDeleting}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              ลบ
+                              {t("tenants.delete")}
                             </DropdownMenuItem>
-
-                            {/* ✅ เงื่อนไขแสดงเฉพาะกรณีมีลูกเช่า */}
                             {tenants.length > 1 && (
                               <DropdownMenuItem
                                 onClick={() => handleDeleteRentedchild(firstTenant)}
@@ -477,7 +459,7 @@ const TenantsPage = ({ children }) => {
                                 disabled={isDeleting}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                ลบลูกเช่า
+                                {t("tenants.deleteChild")}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -544,3 +526,6 @@ const TenantsPage = ({ children }) => {
 };
 
 export default TenantsPage;
+
+
+
