@@ -23,10 +23,12 @@ export const useBillingCalculation = (
     setDueDate,
     resetForm,
   } = useBillingFormState(open);
-
+  
+  // กำหนดค่าน้ำ
   const WATER_RATE = 100;
   const ELECTRICITY_RATE = 7;
   const BillingMonth = `${billingMonth}-01`;
+  // กำหนดค่าไฟฟ้า
 
 const handleCreateBilling = async (
   waterUnitsByRoom: Record<string, number>,

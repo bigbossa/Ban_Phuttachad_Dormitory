@@ -106,47 +106,63 @@ export default function BillingCalculationDialog({
             dueDate={dueDate}
             onDueDateChange={setDueDate}
           />
-
-          {roomOccupancies
-            ?.slice()
-            .sort((a, b) => parseInt(a.room_number) - parseInt(b.room_number))
-            .map((room) => {
-              const roomId = room.room_id;
-              const roomRent = settings.depositRate || 0;
-              const occupantCount = room.occupants?.length || 0;
-
-              const waterUnits = waterUnitsByRoom[roomId] || 0;
-              const waterCost = occupantCount * WATER_RATE;
-
-              const currentMeter = currentMeterReadingByRoom[roomId] || 0;
-              const prevMeter = room.latest_meter_reading || 0;
-              const electricityUnits = Math.max(currentMeter - prevMeter, 0);
-              const electricityCost = electricityUnits * ELECTRICITY_RATE;
-
-              const totalAmount = roomRent + waterCost + electricityCost;
-
-              return (
-                <CostBreakdown
-                  key={roomId}
-                  roomId={roomId}
-                  room_number={room.room_number}
-                  roomRent={roomRent}
-                  waterUnits={waterUnits}
-                  onWaterUnitsChange={(val) => onWaterUnitsChange(roomId, val)}
-                  waterCost={waterCost}
-                  electricityUnits={electricityUnits}
-                  previousMeterReading={prevMeter}
-                  currentMeterReading={currentMeter}
-                  onCurrentMeterReadingChange={(val) => onCurrentMeterReadingChange(roomId, val)}
-                  electricityCost={electricityCost}
-                  totalAmount={totalAmount}
-                  occupantCount={occupantCount}
-                  WATER_RATE={WATER_RATE}
-                  ELECTRICITY_RATE={ELECTRICITY_RATE}
-                  onValidityChange={(valid) => onValidityChange(roomId, valid)}
-                />
-              );
-            })}
+          <div className="overflow-x-auto">
+            <table className="min-w-full border text-sm bg-white dark:bg-background">
+              <thead className="bg-gray-100 dark:bg-card">
+                <tr>
+                  <th className="border px-2 py-1">{t("billing.roomNumber")}</th>
+                  <th className="border px-2 py-1">{t("billing.roomRent")}</th>
+                  <th className="border px-2 py-1">{t("billing.waterCost")}</th>
+                  <th className="border px-2 py-1">{t("billing.electricityCost")}</th>
+                  <th className="border px-2 py-1">{t("billing.previousMeter")}</th>
+                  <th className="border px-2 py-1">{t("billing.currentMeter")}</th>
+                  <th className="border px-2 py-1">{t("billing.electricityUnitUsed")}</th>
+                  <th className="border px-2 py-1">{t("billing.total")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roomOccupancies
+                  ?.slice()
+                  .sort((a, b) => parseInt(a.room_number) - parseInt(b.room_number))
+                  .map((room) => {
+                    const roomId = room.room_id;
+                    const roomRent = settings.depositRate || 0;
+                    const occupantCount = room.occupants?.length || 0;
+                    const waterUnits = waterUnitsByRoom[roomId] || 0;
+                    const waterCost = occupantCount * WATER_RATE;
+                    const currentMeter = currentMeterReadingByRoom[roomId] || 0;
+                    const prevMeter = room.latest_meter_reading || 0;
+                    const electricityUnits = Math.max(currentMeter - prevMeter, 0);
+                    const electricityCost = electricityUnits * ELECTRICITY_RATE;
+                    const totalAmount = roomRent + waterCost + electricityCost;
+                    return (
+                      <tr key={roomId} className="text-center">
+                        <td className="border px-2 py-1 font-semibold">{room.room_number}</td>
+                        <td className="border px-2 py-1">{roomRent.toLocaleString()} {t("billing.baht")}</td>
+                        <td className="border px-2 py-1">{waterCost.toLocaleString()} {t("billing.baht")}<br/><span className="text-xs text-gray-500">({occupantCount} × {WATER_RATE})</span></td>
+                        <td className="border px-2 py-1">{electricityCost.toLocaleString()} {t("billing.baht")}</td>
+                        <td className="border px-2 py-1">{prevMeter}</td>
+                        <td className="border px-2 py-1">
+                          <input
+                            type="number"
+                            className="w-20 border rounded px-1 py-0.5 dark:bg-background dark:text-foreground"
+                            value={currentMeter}
+                            min={prevMeter}
+                            step="1"
+                            onChange={e => onCurrentMeterReadingChange(roomId, Number(e.target.value))}
+                          />
+                          {currentMeter < prevMeter && (
+                            <div className="text-xs text-red-500">*</div>
+                          )}
+                        </td>
+                        <td className="border px-2 py-1">{electricityUnits} {t("billing.electricityUnit")}</td>
+                        <td className="border px-2 py-1 font-bold text-green-600">{totalAmount.toLocaleString()} {t("billing.baht")}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
