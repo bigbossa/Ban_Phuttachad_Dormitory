@@ -24,7 +24,7 @@ export const useBillingCalculation = (
     resetForm,
   } = useBillingFormState(open);
 
-  const WATER_RATE = 20;
+  const WATER_RATE = 100;
   const ELECTRICITY_RATE = 7;
   const BillingMonth = `${billingMonth}-01`;
 
