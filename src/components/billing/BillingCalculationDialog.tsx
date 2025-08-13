@@ -107,17 +107,16 @@ export default function BillingCalculationDialog({
             onDueDateChange={setDueDate}
           />
           <div className="overflow-x-auto">
-            <table className="min-w-full border text-sm bg-white dark:bg-background">
+            <table className="min-w-full border text-sm bg-white dark:bg-background rounded-lg overflow-hidden">
               <thead className="bg-gray-100 dark:bg-card">
                 <tr>
-                  <th className="border px-2 py-1">{t("billing.roomNumber")}</th>
-                  <th className="border px-2 py-1">{t("billing.roomRent")}</th>
-                  <th className="border px-2 py-1">{t("billing.waterCost")}</th>
-                  <th className="border px-2 py-1">{t("billing.electricityCost")}</th>
-                  <th className="border px-2 py-1">{t("billing.previousMeter")}</th>
-                  <th className="border px-2 py-1">{t("billing.currentMeter")}</th>
-                  <th className="border px-2 py-1">{t("billing.electricityUnitUsed")}</th>
-                  <th className="border px-2 py-1">{t("billing.total")}</th>
+                  <th className="border px-2 py-1"> {t("billing.roomNumber")}</th>
+                  <th className="border px-2 py-1"> {t("billing.roomRent")}</th>
+                  <th className="border px-2 py-1">💧 {t("billing.waterCost")}</th>
+                  <th className="border px-2 py-1">⚡ {t("billing.electricityCost")}</th>
+                  <th className="border px-2 py-1"> {t("billing.previousMeter")}</th>
+                  <th className="border px-2 py-1"> {t("billing.currentMeter")}</th>
+                  <th className="border px-2 py-1">🟢 {t("billing.total")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +139,10 @@ export default function BillingCalculationDialog({
                         <td className="border px-2 py-1 font-semibold">{room.room_number}</td>
                         <td className="border px-2 py-1">{roomRent.toLocaleString()} {t("billing.baht")}</td>
                         <td className="border px-2 py-1">{waterCost.toLocaleString()} {t("billing.baht")}<br/><span className="text-xs text-gray-500">({occupantCount} × {WATER_RATE})</span></td>
-                        <td className="border px-2 py-1">{electricityCost.toLocaleString()} {t("billing.baht")}</td>
+                        <td className="border px-2 py-1">
+                          {electricityCost.toLocaleString()} {t("billing.baht")}<br/>
+                          <span className="text-xs text-gray-500">({electricityUnits} {t("billing.electricityUnit")})</span>
+                        </td>
                         <td className="border px-2 py-1">{prevMeter}</td>
                         <td className="border px-2 py-1">
                           <input
@@ -155,7 +157,6 @@ export default function BillingCalculationDialog({
                             <div className="text-xs text-red-500">*</div>
                           )}
                         </td>
-                        <td className="border px-2 py-1">{electricityUnits} {t("billing.electricityUnit")}</td>
                         <td className="border px-2 py-1 font-bold text-green-600">{totalAmount.toLocaleString()} {t("billing.baht")}</td>
                       </tr>
                     );
