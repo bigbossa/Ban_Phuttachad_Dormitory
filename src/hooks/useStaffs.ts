@@ -88,14 +88,17 @@ export const useStaffs = () => {
 
   const updateStaffMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: StaffUpdate }) => {
-      console.log('Updating tenant:', id, updates);
-      const { data, error } = await supabase
-        .from('staffs')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      console.log('staffs tenant:', id, updates);
+     const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== undefined)
+    );
 
+    const { data, error } = await supabase
+      .from('staffs')
+      .update(cleanUpdates)
+      .eq('id', id)
+      .select()
+      .single();
       if (error) {
         console.error('Error updating staff:', error);
         throw error;
@@ -134,6 +137,7 @@ const deleteStaffMutation = useMutation({
     if (error) {
       throw error;
     }
+     return data;
   },
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: ['staffs'] });

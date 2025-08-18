@@ -312,7 +312,7 @@ export default function TenantFormDialog({
       last_name: data.lastName,
       email: data.email,
       phone: data.phone,
-      fullAddress,
+      address: fullAddress, // เปลี่ยนจาก fullAddress เป็น address
       id_card: data.id_card,
       room_id,
       action: "1", 
@@ -382,7 +382,7 @@ export default function TenantFormDialog({
       phone: data.phone,
       email: data.email,
       id_card: data.id_card,
-      fullAddress,
+      address: fullAddress, // เปลี่ยนจาก fullAddress เป็น address
       room_id,
       action: "1", 
     };

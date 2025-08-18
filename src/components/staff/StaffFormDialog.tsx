@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import provincesRaw from "../../json/thai_provinces.json";
 import amphuresRaw from "../../json/thai_amphures.json";
 import tambonsRaw from "../../json/thai_tambons.json";
 import MySelect from "react-select";
+import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 interface Tambon {
@@ -46,7 +48,8 @@ interface Province {
 function transformData(): Province[] {
   const tambonsByAmphure: Record<number, Tambon[]> = {};
   tambonsRaw.forEach((tambon: Tambon) => {
-    if (!tambonsByAmphure[tambon.amphure_id]) tambonsByAmphure[tambon.amphure_id] = [];
+    if (!tambonsByAmphure[tambon.amphure_id])
+      tambonsByAmphure[tambon.amphure_id] = [];
     tambonsByAmphure[tambon.amphure_id].push(tambon);
   });
 
@@ -61,8 +64,25 @@ function transformData(): Province[] {
   }));
 }
 
-type Staff = Database['public']['Tables']['staffs']['Row'];
-type StaffInsert = Database['public']['Tables']['staffs']['Insert'];
+type Staff = Database["public"]["Tables"]["staffs"]["Row"];
+type StaffInsert = Database["public"]["Tables"]["staffs"]["Insert"];
+
+// เราสร้าง type สำหรับฟอร์ม โดยใช้ camelCase
+interface StaffFormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  houseNumber: string;
+  village: string;
+  street: string;
+  subDistrict: string;
+  district: string;
+  province: string;
+  emergencyContact: string;
+  zipCode: string;
+}
 
 interface StaffFormDialogProps {
   open: boolean;
@@ -79,96 +99,86 @@ export default function StaffFormDialog({
   onSubmit,
   isLoading = false,
 }: StaffFormDialogProps) {
-  const form = useForm<StaffInsert>({
+  const form = useForm<StaffFormValues>({
     defaultValues: {
-      first_name: staff?.first_name || "",
-      last_name: staff?.last_name || "",
-      email: staff?.email || "",
-      phone: staff?.phone || "",
-      address: staff?.address || "",
-      emergency_contact: staff?.emergency_contact || "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
       houseNumber: "",
+      address: "",
       village: "",
       street: "",
       subDistrict: "",
       district: "",
       province: "",
-      phone: "",
-      role: "staff",
-      zip_code: "",
+      emergencyContact: "",
+      zipCode: "",
     },
   });
 
-   function parseAddress(address: string) {
-  const result: Partial<StaffInsert> = {};
+  function parseAddress(address: string) {
+    const result: Partial<StaffFormValues> = {};
+    if (!address) return result;
 
-  if (!address) return result;
+    const houseMatch = address.match(/บ้านเลขที่\s*(\S+)/);
+    const villageMatch = address.match(/หมู่ที่\s*(\S+)/);
+    const streetMatch = address.match(/ถนน\s*(\S+)/);
+    const subDistrictMatch = address.match(/ตำบล\s*(\S+)/);
+    const districtMatch = address.match(/อำเภอ\s*(\S+)/);
+    const provinceMatch = address.match(/จังหวัด\s*(\S+)/);
+    const zipCodeMatch = address.match(/รหัสไปรษณีย์\s*(\d+)/);
 
-  const houseMatch = address.match(/บ้านเลขที่\s*(\S+)/);
-  const villageMatch = address.match(/หมู่ที่\s*(\S+)/);
-  const streetMatch = address.match(/ถนน\s*(\S+)/);
-  const subDistrictMatch = address.match(/ตำบล\s*(\S+)/);
-  const districtMatch = address.match(/อำเภอ\s*(\S+)/);
-  const provinceMatch = address.match(/จังหวัด\s*(\S+)/);
+    if (houseMatch) result.houseNumber = houseMatch[1];
+    if (villageMatch) result.village = villageMatch[1];
+    if (streetMatch) result.street = streetMatch[1];
+    if (subDistrictMatch) result.subDistrict = subDistrictMatch[1];
+    if (districtMatch) result.district = districtMatch[1];
+    if (provinceMatch) result.province = provinceMatch[1];
+    if (zipCodeMatch) result.zipCode = zipCodeMatch[1];
 
-  if (houseMatch) result.houseNumber = houseMatch[1];
-  if (villageMatch) result.village = villageMatch[1];
-  if (streetMatch) result.street = streetMatch[1];
-  if (subDistrictMatch) result.subDistrict = subDistrictMatch[1];
-  if (districtMatch) result.district = districtMatch[1];
-  if (provinceMatch) result.province = provinceMatch[1];
+    return result;
+  }
+  
+  const { toast } = useToast();
+  const data = useMemo(() => transformData(), []);
 
-  return result;
-}
+  const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
+  const [selectedAmphoe, setSelectedAmphoe] = useState<Amphure | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<Tambon | null>(null);
 
+
+  const provinceOptions = data.map((p) => ({ value: p.id, label: p.name_th }));
+  const amphoeOptions = selectedProvince
+    ? selectedProvince.amphoes.map((a) => ({ value: a.id, label: a.name_th }))
+    : [];
+  const districtOptions = selectedAmphoe
+    ? selectedAmphoe.districts.map((d) => ({ value: d.id, label: d.name_th }))
+    : [];
+
+  // เมื่อ staff เปลี่ยน (แก้ไข)
 useEffect(() => {
-  if (!staff) return;
+  if (!staff) {
+    form.reset({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      houseNumber: "",
+      address:"",
+      village: "",
+      street: "",
+      subDistrict: "",
+      district: "",
+      province: "",
+      emergencyContact: "",
+      zipCode: "",
+    });
+    return;
+  }
 
+  // แก้ไข staff
   const addressParts = parseAddress(staff.address || "");
-
-  form.reset({
-      firstName: staff?.first_name || "",
-      lastName: staff?.last_name || "",
-      email: staff?.email || "",
-      phone: staff?.phone || "",
-      houseNumber: addressParts.houseNumber || "",
-      village: addressParts.village || "",
-      street: addressParts.street || "",
-      subDistrict: addressParts.subDistrict || "",
-      district: addressParts.district || "",
-      province: addressParts.province || "",
-      emergency_contact: staff.emergency_contact || "",
-  });
-}, [staff, form]);
-
-  const handleSubmit = (data: StaffInsert) => {
-  console.log("Form submitted:", data);
-  onSubmit(data);
-  form.reset();
-  onOpenChange(false);
-};
-
-const data = useMemo(() => transformData(), []);
- 
-   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
-   const [selectedAmphoe, setSelectedAmphoe] = useState<Amphure | null>(null);
-   const [selectedDistrict, setSelectedDistrict] = useState<Tambon | null>(null);
- 
-   // ตัวเลือกสำหรับ React Select
-   const provinceOptions = data.map((p) => ({ value: p.id, label: p.name_th }));
-   const amphoeOptions = selectedProvince
-     ? selectedProvince.amphoes.map((a) => ({ value: a.id, label: a.name_th }))
-     : [];
-   const districtOptions = selectedAmphoe
-     ? selectedAmphoe.districts.map((d) => ({ value: d.id, label: d.name_th }))
-     : [];
-
- useEffect(() => {
-  if (!staff || data.length === 0) return;
-
-  const addressParts = parseAddress(staff.address || "");
-  console.log("addressParts", addressParts);
-  console.log("data", data);
 
   form.reset({
     firstName: staff.first_name || "",
@@ -181,22 +191,55 @@ const data = useMemo(() => transformData(), []);
     subDistrict: addressParts.subDistrict || "",
     district: addressParts.district || "",
     province: addressParts.province || "",
-    emergency_contact: staff.emergency_contact || "",
-    role: "staff",
-    zip_code: "",
+    emergencyContact: staff.emergency_contact || "",
+    zipCode: addressParts.zipCode || "",
   });
 
-  // 🔍 ตรวจสอบชื่อที่ใช้ match
-  const prov = data.find((p) => p.name_th.trim() === addressParts.province?.trim());
+  // ตั้งค่า Select state
+  const prov = data.find(
+    (p) => p.name_th.trim() === addressParts.province?.trim()
+  );
   setSelectedProvince(prov || null);
 
-  const amp = prov?.amphoes.find((a) => a.name_th.trim() === addressParts.district?.trim());
+  const amp = prov?.amphoes.find(
+    (a) => a.name_th.trim() === addressParts.district?.trim()
+  );
   setSelectedAmphoe(amp || null);
 
-  const dist = amp?.districts.find((d) => d.name_th.trim() === addressParts.subDistrict?.trim());
+  const dist = amp?.districts.find(
+    (d) => d.name_th.trim() === addressParts.subDistrict?.trim()
+  );
   setSelectedDistrict(dist || null);
 }, [staff, data, form]);
-;
+
+
+
+  const handleSubmit = async (values: StaffFormValues) => {
+  try {
+    await onSubmit({
+      first_name: values.firstName,
+      last_name: values.lastName,
+      email: values.email,
+      phone: values.phone,
+      address: `บ้านเลขที่ ${values.houseNumber} หมู่ที่ ${values.village} ถนน ${values.street} ตำบล ${values.subDistrict} อำเภอ ${values.district} จังหวัด ${values.province} รหัสไปรษณีย์ ${
+        selectedDistrict?.zip_code || values.zipCode || ""
+      }`,
+      emergency_contact: values.emergencyContact,
+    });
+
+    toast({
+      title: "สำเร็จ",
+      description: "บันทึกข้อมูลพนักงานเรียบร้อยแล้ว",
+    });
+    onOpenChange(false); 
+  } catch (error) {
+    toast({
+      title: "เกิดข้อผิดพลาด",
+      description: "ไม่สามารถบันทึกข้อมูลได้",
+      variant: "destructive",
+    });
+  }
+};
 
 
   const { t } = useLanguage();
