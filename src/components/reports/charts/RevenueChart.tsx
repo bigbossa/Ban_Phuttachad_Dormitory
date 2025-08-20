@@ -1,14 +1,11 @@
-
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
 import {
-  ChartContainer,
-} from "@/components/ui/chart";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
 import {
   BarChart,
   Bar,
@@ -22,13 +19,19 @@ import {
 import { useReportsData } from "../hooks/useReportsData";
 
 // Create custom tooltip component
-const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     const amount = payload[0].value as number;
     return (
       <div className="bg-background border border-border p-2 rounded-md shadow-md">
         <p className="font-medium">{`${label}`}</p>
-        <p className="text-primary">{`${payload[0].name}: ${formatCurrency(amount)}`}</p>
+        <p className="text-primary">{`${payload[0].name}: ${formatCurrency(
+          amount
+        )}`}</p>
       </div>
     );
   }
@@ -36,22 +39,25 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
 };
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('th-TH', {
-    style: 'currency',
-    currency: 'THB'
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
   }).format(amount);
 };
 
 export const RevenueChart = () => {
-  const { revenueData, isLoading } = useReportsData('revenue');
+  const { revenueData, isLoading } = useReportsData("revenue");
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Revenue Analysis</CardTitle>
-          <CardDescription>Monthly revenue data for the dormitory</CardDescription>
-        </CardHeader>        <CardContent className="h-[500px] flex items-center justify-center">
+          <CardDescription>
+            Monthly revenue data for the dormitory
+          </CardDescription>
+        </CardHeader>{" "}
+        <CardContent className="h-[500px] flex items-center justify-center">
           <div className="text-muted-foreground">Loading...</div>
         </CardContent>
       </Card>
@@ -62,7 +68,9 @@ export const RevenueChart = () => {
     <Card>
       <CardHeader>
         <CardTitle>Revenue Analysis</CardTitle>
-        <CardDescription>Monthly revenue data for the dormitory</CardDescription>
+        <CardDescription>
+          Monthly revenue data for the dormitory
+        </CardDescription>
       </CardHeader>
       <CardContent className="h-[500px]">
         <ChartContainer
@@ -87,13 +95,10 @@ export const RevenueChart = () => {
               }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="month" 
+              <XAxis dataKey="month" tick={{ fill: "var(--foreground)" }} />
+              <YAxis
                 tick={{ fill: "var(--foreground)" }}
-              />
-              <YAxis 
-                tick={{ fill: "var(--foreground)" }}
-                tickFormatter={(value) => formatCurrency(value).split('.')[0]}
+                tickFormatter={(value) => formatCurrency(value).split(".")[0]}
               />
               <CustomTooltip />
               <Legend />

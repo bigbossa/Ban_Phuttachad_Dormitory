@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,14 +22,16 @@ import { supersupabase } from "@/integrations/supabase/clients";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 
-const passwordSchema = z.object({
-  email: z.string().email("กรุณาใส่อีเมลที่ถูกต้อง"),
-  newPassword: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "รหัสผ่านไม่ตรงกัน",
-  path: ["confirmPassword"],
-});
+const passwordSchema = z
+  .object({
+    email: z.string().email("กรุณาใส่อีเมลที่ถูกต้อง"),
+    newPassword: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "รหัสผ่านไม่ตรงกัน",
+    path: ["confirmPassword"],
+  });
 
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
@@ -40,7 +41,11 @@ interface PasswordResetDialogProps {
   userEmail?: string;
 }
 
-export const PasswordResetDialog = ({ open, onOpenChange, userEmail }: PasswordResetDialogProps) => {
+export const PasswordResetDialog = ({
+  open,
+  onOpenChange,
+  userEmail,
+}: PasswordResetDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -58,21 +63,27 @@ export const PasswordResetDialog = ({ open, onOpenChange, userEmail }: PasswordR
     setLoading(true);
     try {
       // Get user by email first
-      const { data: userData, error: getUserError } = await supersupabase.auth.admin.listUsers();
-      
+      const { data: userData, error: getUserError } =
+        await supersupabase.auth.admin.listUsers();
+
       if (getUserError) {
         throw getUserError;
       }
 
-      const targetUser = userData.users.find((u: any) => u.email === data.email);
+      const targetUser = userData.users.find(
+        (u: any) => u.email === data.email
+      );
       if (!targetUser) {
         throw new Error("ไม่พบผู้ใช้ที่มีอีเมลนี้");
       }
 
       // Update user password
-      const { error } = await supersupabase.auth.admin.updateUserById(targetUser.id, {
-        password: data.newPassword,
-      });
+      const { error } = await supersupabase.auth.admin.updateUserById(
+        targetUser.id,
+        {
+          password: data.newPassword,
+        }
+      );
 
       if (error) {
         throw error;
@@ -95,7 +106,7 @@ export const PasswordResetDialog = ({ open, onOpenChange, userEmail }: PasswordR
         <DialogHeader>
           <DialogTitle>รีเซ็ตรหัสผ่าน</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -105,7 +116,11 @@ export const PasswordResetDialog = ({ open, onOpenChange, userEmail }: PasswordR
                 <FormItem>
                   <FormLabel>อีเมลผู้ใช้</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="อีเมลของผู้ใช้" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="อีเมลของผู้ใช้"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,7 +145,11 @@ export const PasswordResetDialog = ({ open, onOpenChange, userEmail }: PasswordR
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
                       >
-                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </FormControl>
@@ -154,10 +173,16 @@ export const PasswordResetDialog = ({ open, onOpenChange, userEmail }: PasswordR
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </FormControl>

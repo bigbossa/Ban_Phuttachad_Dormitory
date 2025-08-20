@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -21,7 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
-type Tenant = Database['public']['Tables']['tenants']['Row'];
+type Tenant = Database["public"]["Tables"]["tenants"]["Row"];
 
 interface RoomAssignmentDialogProps {
   open: boolean;
@@ -52,13 +51,13 @@ export default function RoomAssignmentDialog({
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
 
   const { data: availableRooms = [] } = useQuery({
-    queryKey: ['available-rooms-with-capacity'],
+    queryKey: ["available-rooms-with-capacity"],
     queryFn: async () => {
       // Get all rooms with their current occupancy count
       const { data: rooms, error: roomsError } = await supabase
-        .from('rooms')
-        .select('*')
-        .order('room_number');
+        .from("rooms")
+        .select("*")
+        .order("room_number");
 
       if (roomsError) throw roomsError;
 
@@ -66,24 +65,26 @@ export default function RoomAssignmentDialog({
       const roomsWithOccupancy: RoomWithOccupancy[] = await Promise.all(
         rooms.map(async (room) => {
           const { data: occupancyData } = await supabase
-            .from('occupancy')
-            .select('tenant_id')
-            .eq('room_id', room.id)
-            .eq('is_current', true);
+            .from("occupancy")
+            .select("tenant_id")
+            .eq("room_id", room.id)
+            .eq("is_current", true);
 
           const current_occupants = occupancyData?.length || 0;
 
           return {
             ...room,
-            current_occupants
+            current_occupants,
           };
         })
       );
 
-      // Filter rooms that have space (current occupants < capacity) or are vacant
-      return roomsWithOccupancy.filter(room => 
-        room.status === 'vacant' || room.current_occupants < room.capacity
-      );
+      // Filter rooms to only empty, non-maintenance rooms
+      return roomsWithOccupancy.filter((room) => {
+        const isMaintenance = room.status === "maintenance";
+        const isEmpty = (room.current_occupants || 0) === 0;
+        return !isMaintenance && isEmpty;
+      });
     },
     enabled: open,
   });
@@ -103,16 +104,17 @@ export default function RoomAssignmentDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>กำหนดห้องให้ผู้เช่า</DialogTitle>
-         <DialogDescription>
+          <DialogDescription>
             เลือกห้องสำหรับ {tenant.first_name} {tenant.last_name}
             {tenant.room_number && (
               <p className="text-sm text-muted-foreground mt-1">
-                ห้องปัจจุบัน: <span className="font-medium">ห้อง {tenant.room_number}</span>
+                ห้องปัจจุบัน:{" "}
+                <span className="font-medium">ห้อง {tenant.room_number}</span>
               </p>
             )}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label htmlFor="room" className="text-sm font-medium">
@@ -123,26 +125,33 @@ export default function RoomAssignmentDialog({
                 <SelectValue placeholder="เลือกห้องที่มีที่ว่าง" />
               </SelectTrigger>
               <SelectContent>
-            {availableRooms
-              .filter((room) => room.id !== tenant.room_id) 
-              .map((room) => (
-                <SelectItem key={room.id} value={room.id}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>
-                      ห้อง {room.room_number} - {room.room_type} (ชั้น {room.floor})
-                    </span>
-                    <div className="flex items-center gap-2 ml-2">
-                      <Badge variant={room.current_occupants === 0 ? "secondary" : "outline"}>
-                        {room.current_occupants}/{room.capacity} คน
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {room.price.toLocaleString()} บาท
-                      </span>
-                    </div>
-                  </div>
-                </SelectItem>
-              ))}
-          </SelectContent>
+                {availableRooms
+                  .filter((room) => room.id !== tenant.room_id)
+                  .map((room) => (
+                    <SelectItem key={room.id} value={room.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>
+                          ห้อง {room.room_number} (ชั้น {room.floor})
+                        </span>
+                        <div className="flex items-center gap-2 ml-2">
+                          <Badge
+                            variant={
+                              room.current_occupants === 0
+                                ? "secondary"
+                                : "outline"
+                            }
+                          >
+                            {room.current_occupants}/
+                            {Math.max(room.capacity ?? 2, 2)} คน
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {room.price.toLocaleString()} บาท
+                          </span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectContent>
             </Select>
             {availableRooms.length === 0 && (
               <p className="text-sm text-muted-foreground">
@@ -156,8 +165,8 @@ export default function RoomAssignmentDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             ยกเลิก
           </Button>
-          <Button 
-            onClick={handleAssign} 
+          <Button
+            onClick={handleAssign}
             disabled={!selectedRoomId || isLoading}
           >
             {isLoading ? "กำลังบันทึก..." : "กำหนดห้อง"}

@@ -77,13 +77,14 @@ export default function BillingEditDialog({
 
   const ELECTRICITY_RATE = settings.electricityRate || 0;
   const currentMeter = Number(currentMeterInput) || 0;
-  const electricityUnits = billing.electricity_units + (currentMeter - previousMeter);
+  const electricityUnits =
+    billing.electricity_units + (currentMeter - previousMeter);
   const newElectricityCost = electricityUnits * ELECTRICITY_RATE;
   const totalAmount =
-  billing.room_rent +
-  billing.water_cost +
-  (newElectricityCost > 0 ? newElectricityCost : 0);
-  
+    billing.room_rent +
+    billing.water_cost +
+    (newElectricityCost > 0 ? newElectricityCost : 0);
+
   if (loading) return null;
 
   return (
@@ -103,7 +104,9 @@ export default function BillingEditDialog({
               onBlur={() => {
                 const value = Number(currentMeterInput);
                 if (value < previousMeter) {
-                  alert(`เลขมิเตอร์ต้องไม่ต่ำกว่าค่าก่อนหน้า (${previousMeter})`);
+                  alert(
+                    `เลขมิเตอร์ต้องไม่ต่ำกว่าค่าก่อนหน้า (${previousMeter})`
+                  );
                   setCurrentMeterInput(String(previousMeter));
                 }
               }}
@@ -121,54 +124,58 @@ export default function BillingEditDialog({
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
-         <button
-        disabled={currentMeter < previousMeter}
-        onClick={async () => {
-            if (currentMeter < previousMeter) return;
+          <button
+            disabled={currentMeter < previousMeter}
+            onClick={async () => {
+              if (currentMeter < previousMeter) return;
 
-            const updatedBilling = {
-            edit_name:user.id,
-            electricity_units: electricityUnits,
-            electricity_cost: newElectricityCost > 0 ? newElectricityCost : 0,
-            sum: totalAmount,
-            };
+              const updatedBilling = {
+                edit_name: user.id,
+                electricity_units: electricityUnits,
+                electricity_cost:
+                  newElectricityCost > 0 ? newElectricityCost : 0,
+                sum: totalAmount,
+              };
 
-            // อัปเดตตาราง billings
-            const { error: billingError } = await supabase
-            .from("billing")
-            .update(updatedBilling)
-            .eq("id", billing.id);
+              // อัปเดตตาราง billings
+              const { error: billingError } = await supabase
+                .from("billing")
+                .update(updatedBilling)
+                .eq("id", billing.id);
 
-            if (billingError) {
-            console.error("Error updating billing:", billingError);
-            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลบิล");
-            return;
-            }
+              if (billingError) {
+                console.error("Error updating billing:", billingError);
+                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลบิล");
+                return;
+              }
 
-            // อัปเดต latest_meter_reading ในตาราง rooms
-            const { error: roomError } = await supabase
-            .from("rooms")
-            .update({ latest_meter_reading: currentMeter })
-            .eq("id", billing.room_id);
+              // อัปเดต latest_meter_reading ในตาราง rooms
+              const { error: roomError } = await supabase
+                .from("rooms")
+                .update({
+                  latest_meter_reading: currentMeter,
+                  old_miter: previousMeter,
+                })
+                .eq("id", billing.room_id);
 
-            if (roomError) {
-            console.error("Error updating room meter:", roomError);
-            alert("บันทึกบิลสำเร็จ แต่ไม่สามารถอัปเดตเลขมิเตอร์ห้องได้");
-            return;
-            }
+              if (roomError) {
+                console.error("Error updating room meter:", roomError);
+                alert("บันทึกบิลสำเร็จ แต่ไม่สามารถอัปเดตเลขมิเตอร์ห้องได้");
+                return;
+              }
 
-            onSave(updatedBilling);
-            onOpenChange(false);
-            window.location.reload();
-        }}
-        className={`px-4 py-2 rounded text-white ${
-            currentMeter < previousMeter
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
-        }`}
-        >
-        บันทึก
-        </button>
+              onSave(updatedBilling);
+              onOpenChange(false);
+              window.location.reload();
+            }}
+            className={`px-4 py-2 rounded text-white ${
+              currentMeter < previousMeter
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            บันทึก
+          </button>
         </div>
       </DialogContent>
     </Dialog>

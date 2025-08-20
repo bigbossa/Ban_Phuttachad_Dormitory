@@ -1,19 +1,37 @@
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BillingStatusBadge from "@/components/billing/BillingStatusBadge";
 import { useAuth } from "@/providers/AuthProvider";
 import BillingEditDialog from "@/components/billing/components/BillingEditDialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
-  AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -57,24 +75,24 @@ export default function BillingTable({
 }: BillingTableProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const isAdmin = user?.role === 'admin';
-  const isStaff = user?.role === 'staff';
-  const isTenant = user?.role === 'tenant';
+  const isAdmin = user?.role === "admin";
+  const isStaff = user?.role === "staff";
+  const isTenant = user?.role === "tenant";
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
+    new Intl.NumberFormat("th-TH", {
+      style: "currency",
+      currency: "THB",
       minimumFractionDigits: 0,
     }).format(amount);
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('th-TH');
+    new Date(dateString).toLocaleDateString("th-TH");
 
   const formatMonth = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
+    new Date(dateString).toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "long",
     });
 
   const visibleBillings = filteredBillings.filter((billing) => {
@@ -84,14 +102,20 @@ export default function BillingTable({
   });
 
   const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [selectedBilling, setSelectedBilling] = useState<BillingRecord | null>(null);
+  const [selectedBilling, setSelectedBilling] = useState<BillingRecord | null>(
+    null
+  );
   const onEdit = (billing: BillingRecord) => {
     setSelectedBilling(billing);
     setOpenEditDialog(true);
   };
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [selectedBillingForPayment, setSelectedBillingForPayment] = useState<BillingRecord | null>(null);
+  const [selectedBillingForPayment, setSelectedBillingForPayment] =
+    useState<BillingRecord | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedBillingForDelete, setSelectedBillingForDelete] =
+    useState<BillingRecord | null>(null);
 
   const handleConfirmMarkAsPaid = (billing: BillingRecord) => {
     setSelectedBillingForPayment(billing);
@@ -106,11 +130,40 @@ export default function BillingTable({
     }
   };
 
+  const handleDeleteBilling = async () => {
+    if (!selectedBillingForDelete) return;
+    try {
+      // ก่อนลบบิล ให้อัปเดต latest_meter_reading ของห้องกลับเป็น old_miter
+      const { data: roomData, error: roomError } = await supabase
+        .from("rooms")
+        .select("old_miter")
+        .eq("id", selectedBillingForDelete.room_id)
+        .single();
+
+      if (roomError) {
+        console.error("Error fetching room old_miter:", roomError);
+        // ถ้าไม่สามารถดึง old_miter ได้ ให้ลบบิลไปเลย
+      } else if (roomData?.old_miter !== undefined) {
+        await supabase
+          .from("rooms")
+          .update({ latest_meter_reading: roomData.old_miter })
+          .eq("id", selectedBillingForDelete.room_id);
+      }
+
+      await supabase
+        .from("billing")
+        .delete()
+        .eq("id", selectedBillingForDelete.id);
+      await fetchBillings();
+    } finally {
+      setShowDeleteDialog(false);
+      setSelectedBillingForDelete(null);
+    }
+  };
+
   const [billing, setBillings] = useState([]);
   const fetchBillings = async () => {
-    const { data, error } = await supabase
-      .from("billing")
-      .select("*"); 
+    const { data, error } = await supabase.from("billing").select("*");
 
     if (!error) setBillings(data);
   };
@@ -118,8 +171,6 @@ export default function BillingTable({
   useEffect(() => {
     fetchBillings();
   }, []);
-
-  
 
   return (
     <Card>
@@ -145,29 +196,45 @@ export default function BillingTable({
                 <TableHead>{t("billing.dueDate")}</TableHead>
                 <TableHead>{t("billing.status")}</TableHead>
                 <TableHead>{t("billing.paidDate")}</TableHead>
-                <TableHead className="text-right">{t("billing.actions")}</TableHead>
+                <TableHead className="text-right">
+                  {t("billing.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {visibleBillings.map((billing) => (
                 <TableRow key={billing.id}>
-                  <TableCell className="font-medium">{formatMonth(billing.billing_month)}</TableCell>
-                  <TableCell className="font-medium">{billing.receipt_number || '-'}</TableCell>
+                  <TableCell className="font-medium">
+                    {formatMonth(billing.billing_month)}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {billing.receipt_number || "-"}
+                  </TableCell>
                   <TableCell>{billing.fullname}</TableCell>
                   <TableCell>{billing.rooms.room_number}</TableCell>
                   <TableCell>{formatCurrency(billing.room_rent)}</TableCell>
                   <TableCell>
                     {formatCurrency(billing.water_cost)}
-                    <div className="text-xs text-muted-foreground">{billing.water_units} {t("billing.personUnit")}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {billing.water_units} {t("billing.personUnit")}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {formatCurrency(billing.electricity_cost)}
-                    <div className="text-xs text-muted-foreground">{billing.electricity_units} {t("billing.electricityUnit")}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {billing.electricity_units} {t("billing.electricityUnit")}
+                    </div>
                   </TableCell>
-                  <TableCell className="font-bold">{formatCurrency(billing.sum)}</TableCell>
+                  <TableCell className="font-bold">
+                    {formatCurrency(billing.sum)}
+                  </TableCell>
                   <TableCell>{formatDate(billing.due_date)}</TableCell>
-                  <TableCell><BillingStatusBadge status={billing.status} /></TableCell>
-                  <TableCell>{billing.paid_date ? formatDate(billing.paid_date) : '-'}</TableCell>
+                  <TableCell>
+                    <BillingStatusBadge status={billing.status} />
+                  </TableCell>
+                  <TableCell>
+                    {billing.paid_date ? formatDate(billing.paid_date) : "-"}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -176,23 +243,37 @@ export default function BillingTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onViewDetails(billing)}>
+                        <DropdownMenuItem
+                          onClick={() => onViewDetails(billing)}
+                        >
                           {t("billing.viewDetails")}
                         </DropdownMenuItem>
-                       {(isAdmin || isStaff) && billing.status !== 'paid' && (
+                        {(isAdmin || isStaff) && billing.status !== "paid" && (
                           <DropdownMenuItem onClick={() => onEdit(billing)}>
                             {t("billing.edit")}
                           </DropdownMenuItem>
                         )}
 
-                        {isAdmin && billing.status !== 'paid' && (
-                          <DropdownMenuItem onClick={() => handleConfirmMarkAsPaid(billing)}>
+                        {isAdmin && billing.status !== "paid" && (
+                          <DropdownMenuItem
+                            onClick={() => handleConfirmMarkAsPaid(billing)}
+                          >
                             {t("billing.markAsPaid")}
                           </DropdownMenuItem>
                         )}
-                        {isTenant && billing.status !== 'paid' && (
+                        {isTenant && billing.status !== "paid" && (
                           <DropdownMenuItem onClick={() => onPayClick(billing)}>
                             {t("billing.pay")}
+                          </DropdownMenuItem>
+                        )}
+                        {isAdmin && billing.status !== "paid" && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedBillingForDelete(billing);
+                              setShowDeleteDialog(true);
+                            }}
+                          >
+                            ลบบิล
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -223,7 +304,10 @@ export default function BillingTable({
           />
         )}
 
-        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
@@ -234,6 +318,20 @@ export default function BillingTable({
               <AlertDialogCancel>{t("billing.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmAction}>
                 {t("billing.confirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>ยืนยันการลบบิลนี้หรือไม่?</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteBilling}>
+                ลบ
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

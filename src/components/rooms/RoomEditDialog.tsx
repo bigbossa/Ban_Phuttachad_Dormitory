@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,9 +48,16 @@ export default function RoomEditDialog({
 }: RoomEditDialogProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [editRoom, setEditRoom] = useState<Room>(room);
+  const [editRoom, setEditRoom] = useState<Room>({ ...room, capacity: 2 });
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
+
+  // บังคับความจุเป็น 2 ทุกครั้งที่เปิดหน้าต่างแก้ไขหรือเมื่อห้องเปลี่ยน
+  // ป้องกันค่าคงค้างจากห้องก่อนหน้า
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => {
+    setEditRoom((prev) => ({ ...prev, capacity: 2 }));
+  }, [open, room.id]);
 
   const handleUpdateRoom = async () => {
     try {
@@ -108,7 +116,8 @@ export default function RoomEditDialog({
             {t("rooms.edit")} {room.room_number}
           </DialogTitle>
           <DialogDescription>
-            {t("rooms.edit_description") || "Update the room information below."}
+            {t("rooms.edit_description") ||
+              "Update the room information below."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -128,9 +137,7 @@ export default function RoomEditDialog({
             <Select
               value={editRoom.room_type}
               onValueChange={(value) => {
-                const capacity =
-                  value === t("Standard.Single") ? 1 :
-                  value === t("Standard.Double") ? 2 : 0;
+                const capacity = 2;
                 setEditRoom({ ...editRoom, room_type: value, capacity });
               }}
             >
@@ -138,8 +145,12 @@ export default function RoomEditDialog({
                 <SelectValue placeholder={t("rooms.type") + "..."} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Standard Single">{t("Standard.Single")}</SelectItem>
-                <SelectItem value="Standard Double">{t("Standard.Double")}</SelectItem>
+                <SelectItem value="Standard Single">
+                  {t("Standard.Single")}
+                </SelectItem>
+                <SelectItem value="Standard Double">
+                  {t("Standard.Double")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -204,7 +215,9 @@ export default function RoomEditDialog({
             {t("cancel") || "Cancel"}
           </Button>
           <Button onClick={handleUpdateRoom} disabled={loading}>
-            {loading ? t("rooms.updating") || "Updating..." : t("rooms.update") || "Update Room"}
+            {loading
+              ? t("rooms.updating") || "Updating..."
+              : t("rooms.update") || "Update Room"}
           </Button>
         </DialogFooter>
       </DialogContent>

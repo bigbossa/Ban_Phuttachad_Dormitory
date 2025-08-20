@@ -38,21 +38,27 @@ export default function BillingCalculationDialog({
     resetForm,
   } = useBillingCalculation(open, onBillingCreated, onOpenChange);
 
-  const [waterUnitsByRoom, setWaterUnitsByRoom] = useState<Record<string, number>>({});
-  const [currentMeterReadingByRoom, setCurrentMeterReadingByRoom] = useState<Record<string, number>>({});
-  const [validityByRoom, setValidityByRoom] = useState<Record<string, boolean>>({});
+  const [waterUnitsByRoom, setWaterUnitsByRoom] = useState<
+    Record<string, number>
+  >({});
+  const [currentMeterReadingByRoom, setCurrentMeterReadingByRoom] = useState<
+    Record<string, string>
+  >({});
+  const [validityByRoom, setValidityByRoom] = useState<Record<string, boolean>>(
+    {}
+  );
   const { settings } = useSystemSettings();
   const { t } = useLanguage();
 
   useEffect(() => {
     if (roomOccupancies?.length) {
       const waterInit: Record<string, number> = {};
-      const meterInit: Record<string, number> = {};
+      const meterInit: Record<string, string> = {};
       const validityInit: Record<string, boolean> = {};
       roomOccupancies.forEach((room) => {
         waterInit[room.room_id] = 0;
-        meterInit[room.room_id] = room.latest_meter_reading || 0;
-        validityInit[room.room_id] = true;
+        meterInit[room.room_id] = ""; // บังคับให้เป็นค่าว่างเริ่มต้น
+        validityInit[room.room_id] = false; // ต้องกรอกให้ครบ
       });
       setWaterUnitsByRoom(waterInit);
       setCurrentMeterReadingByRoom(meterInit);
@@ -67,35 +73,43 @@ export default function BillingCalculationDialog({
     }));
   };
 
-  const onCurrentMeterReadingChange = (roomId: string, value: number) => {
+  const onCurrentMeterReadingChange = (roomId: string, value: string) => {
     setCurrentMeterReadingByRoom((prev) => ({
       ...prev,
       [roomId]: value,
     }));
+
+    const prev =
+      roomOccupancies?.find((r) => r.room_id === roomId)
+        ?.latest_meter_reading || 0;
+    const isValid = value !== "" && Number(value) >= prev;
+    setValidityByRoom((prevMap) => ({ ...prevMap, [roomId]: isValid }));
   };
 
-  const onValidityChange = (roomId: string, isValid: boolean) => {
-    setValidityByRoom((prev) => ({
-      ...prev,
-      [roomId]: isValid,
-    }));
-  };
-
-  const isFormValid = Object.values(validityByRoom).every((v) => v === true);
+  const isFormValid =
+    roomOccupancies?.every((r) => validityByRoom[r.room_id] === true) ?? false;
 
   const onCreate = () => {
-    handleCreateBilling(waterUnitsByRoom, currentMeterReadingByRoom);
+    // แปลงค่าเป็นตัวเลขก่อนส่งต่อ
+    const numericMeters: Record<string, number> = {};
+    roomOccupancies?.forEach((room) => {
+      numericMeters[room.room_id] = Number(
+        currentMeterReadingByRoom[room.room_id]
+      );
+    });
+    handleCreateBilling(waterUnitsByRoom, numericMeters);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px]">
         <DialogHeader className="sticky top-0 bg-background z-999 pb-4 border-b">
-          <DialogTitle>
-            {t("billing.calculateTitle")}
-          </DialogTitle>
+          <DialogTitle>{t("billing.calculateTitle")}</DialogTitle>
           <DialogDescription>
-            {t("billing.calculateDesc", { water: WATER_RATE, elec: ELECTRICITY_RATE })}
+            {t("billing.calculateDesc", {
+              water: WATER_RATE,
+              elec: ELECTRICITY_RATE,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -110,54 +124,108 @@ export default function BillingCalculationDialog({
             <table className="min-w-full border text-sm bg-white dark:bg-background rounded-lg overflow-hidden">
               <thead className="bg-gray-100 dark:bg-card">
                 <tr>
-                  <th className="border px-2 py-1"> {t("billing.roomNumber")}</th>
+                  <th className="border px-2 py-1">
+                    {" "}
+                    {t("billing.roomNumber")}
+                  </th>
                   <th className="border px-2 py-1"> {t("billing.roomRent")}</th>
-                  <th className="border px-2 py-1">💧 {t("billing.waterCost")}</th>
-                  <th className="border px-2 py-1">⚡ {t("billing.electricityCost")}</th>
-                  <th className="border px-2 py-1"> {t("billing.previousMeter")}</th>
-                  <th className="border px-2 py-1"> {t("billing.currentMeter")}</th>
+                  <th className="border px-2 py-1">
+                    💧 {t("billing.waterCost")}
+                  </th>
+                  <th className="border px-2 py-1">
+                    ⚡ {t("billing.electricityCost")}
+                  </th>
+                  <th className="border px-2 py-1">
+                    {" "}
+                    {t("billing.previousMeter")}
+                  </th>
+                  <th className="border px-2 py-1">
+                    {" "}
+                    {t("billing.currentMeter")}
+                  </th>
                   <th className="border px-2 py-1">🟢 {t("billing.total")}</th>
                 </tr>
               </thead>
               <tbody>
                 {roomOccupancies
                   ?.slice()
-                  .sort((a, b) => parseInt(a.room_number) - parseInt(b.room_number))
+                  .sort(
+                    (a, b) => parseInt(a.room_number) - parseInt(b.room_number)
+                  )
                   .map((room) => {
                     const roomId = room.room_id;
                     const roomRent = settings.depositRate || 0;
                     const occupantCount = room.occupants?.length || 0;
                     const waterUnits = waterUnitsByRoom[roomId] || 0;
                     const waterCost = occupantCount * WATER_RATE;
-                    const currentMeter = currentMeterReadingByRoom[roomId] || 0;
+                    const currentMeterStr =
+                      currentMeterReadingByRoom[roomId] || "";
+                    const currentMeter = Number(currentMeterStr) || 0;
                     const prevMeter = room.latest_meter_reading || 0;
-                    const electricityUnits = Math.max(currentMeter - prevMeter, 0);
+                    const electricityUnits =
+                      currentMeterStr === ""
+                        ? 0
+                        : Math.max(currentMeter - prevMeter, 0);
                     const electricityCost = electricityUnits * ELECTRICITY_RATE;
                     const totalAmount = roomRent + waterCost + electricityCost;
+                    const invalid = !validityByRoom[roomId];
                     return (
                       <tr key={roomId} className="text-center">
-                        <td className="border px-2 py-1 font-semibold">{room.room_number}</td>
-                        <td className="border px-2 py-1">{roomRent.toLocaleString()} {t("billing.baht")}</td>
-                        <td className="border px-2 py-1">{waterCost.toLocaleString()} {t("billing.baht")}<br/><span className="text-xs text-gray-500">({occupantCount} × {WATER_RATE})</span></td>
+                        <td className="border px-2 py-1 font-semibold">
+                          {room.room_number}
+                        </td>
                         <td className="border px-2 py-1">
-                          {electricityCost.toLocaleString()} {t("billing.baht")}<br/>
-                          <span className="text-xs text-gray-500">({electricityUnits} {t("billing.electricityUnit")})</span>
+                          {roomRent.toLocaleString()} {t("billing.baht")}
+                        </td>
+                        <td className="border px-2 py-1">
+                          {waterCost.toLocaleString()} {t("billing.baht")}
+                          <br />
+                          <span className="text-xs text-gray-500">
+                            ({occupantCount} × {WATER_RATE})
+                          </span>
+                        </td>
+                        <td className="border px-2 py-1">
+                          {electricityCost.toLocaleString()} {t("billing.baht")}
+                          <br />
+                          <span className="text-xs text-gray-500">
+                            ({electricityUnits} {t("billing.electricityUnit")})
+                          </span>
                         </td>
                         <td className="border px-2 py-1">{prevMeter}</td>
                         <td className="border px-2 py-1">
                           <input
                             type="number"
-                            className="w-20 border rounded px-1 py-0.5 dark:bg-background dark:text-foreground"
-                            value={currentMeter}
+                            className={`w-24 border rounded px-1 py-0.5 dark:bg-background dark:text-foreground ${
+                              invalid ? "border-red-500" : ""
+                            }`}
+                            value={currentMeterStr}
                             min={prevMeter}
                             step="1"
-                            onChange={e => onCurrentMeterReadingChange(roomId, Number(e.target.value))}
+                            required
+                            placeholder={t("billing.enterCurrentMeter") || ""}
+                            onChange={(e) =>
+                              onCurrentMeterReadingChange(
+                                roomId,
+                                e.target.value
+                              )
+                            }
                           />
-                          {currentMeter < prevMeter && (
-                            <div className="text-xs text-red-500">*</div>
+                          {currentMeterStr === "" && (
+                            <div className="text-xs text-red-500">
+                              {t("billing.required") || "กรอกเลขมิเตอร์ใหม่"}
+                            </div>
                           )}
+                          {currentMeterStr !== "" &&
+                            Number(currentMeterStr) < prevMeter && (
+                              <div className="text-xs text-red-500">
+                                {t("billing.meterMustBeGtePrev") ||
+                                  `ต้องไม่ต่ำกว่าค่าก่อนหน้า (${prevMeter})`}
+                              </div>
+                            )}
                         </td>
-                        <td className="border px-2 py-1 font-bold text-green-600">{totalAmount.toLocaleString()} {t("billing.baht")}</td>
+                        <td className="border px-2 py-1 font-bold text-green-600">
+                          {totalAmount.toLocaleString()} {t("billing.baht")}
+                        </td>
                       </tr>
                     );
                   })}
@@ -167,7 +235,13 @@ export default function BillingCalculationDialog({
         </div>
 
         <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
-          <Button variant="outline" onClick={() => { onOpenChange(false); resetForm(); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+              resetForm();
+            }}
+          >
             {t("common.cancel")}
           </Button>
           <Button onClick={onCreate} disabled={loading || !isFormValid}>

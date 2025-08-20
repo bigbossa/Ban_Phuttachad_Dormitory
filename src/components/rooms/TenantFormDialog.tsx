@@ -72,7 +72,7 @@ export default function TenantFormDialog({
         return;
       }
 
-      const capacity = roomData.capacity || 0;
+      const capacity = Math.max(roomData.capacity ?? 2, 2);
 
       // 2. เช็กจำนวนผู้พักปัจจุบันในห้องนี้
       const { count: occupantCount, error: occCountError } = await supabase
@@ -143,7 +143,10 @@ export default function TenantFormDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -182,7 +185,11 @@ export default function TenantFormDialog({
                 <FormItem>
                   <FormLabel>{t("profile.email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t("profile.email")} {...field} />
+                    <Input
+                      type="email"
+                      placeholder={t("profile.email")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -224,7 +231,10 @@ export default function TenantFormDialog({
                 <FormItem>
                   <FormLabel>{t("tenants.emergencyContact")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("tenants.emergencyContact")} {...field} />
+                    <Input
+                      placeholder={t("tenants.emergencyContact")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

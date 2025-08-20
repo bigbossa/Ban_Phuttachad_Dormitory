@@ -3,8 +3,6 @@ import { Separator } from "@/components/ui/separator";
 import { Settings } from "lucide-react";
 import { SystemInfoSection } from "./SystemInfoSection";
 import { SystemConfigSection } from "./SystemConfigSection";
-import { SystemMaintenanceSection } from "./SystemMaintenanceSection";
-import { SystemStatusSection } from "./SystemStatusSection";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export function SystemSettingsCard() {
@@ -32,13 +30,8 @@ export function SystemSettingsCard() {
 
         <Separator />
 
-        {/* System Maintenance */}
-        <SystemMaintenanceSection />
-
-        <Separator />
-
         {/* System Status */}
-        <SystemStatusSection />
+        {/* <SystemStatusSection /> */}
       </CardContent>
     </Card>
   );

@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,7 +25,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Users, Plus, MoreHorizontal, Eye, Edit, Trash2, Home, UserPlus } from "lucide-react";
+import {
+  Users,
+  Plus,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+  Home,
+  UserPlus,
+} from "lucide-react";
 import { useTenants } from "@/hooks/useTenants";
 import TenantFormDialog from "@/components/tenants/TenantFormDialog";
 import TenantDetailsDialog from "@/components/tenants/TenantDetailsDialog";
@@ -30,7 +48,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserCreateDialog } from "../components/auth/UserCreateDialog";
 import ViewContractDialog from "@/components/tenants/ViewContractDialog";
-import ContractImageDialog from '../components/tenants/ContractImageDialog';
+import ContractImageDialog from "../components/tenants/ContractImageDialog";
 import RentedchildFormDialog from "@/components/tenants/RentedchildFormDialog";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -68,20 +86,20 @@ const TenantsPageOld = ({ children }) => {
   } = useTenants();
 
   const filteredTenants = tenants
-  .filter(t => t.action ==="2")
-  .filter(t => {
-    const fullName = `${t.first_name} ${t.last_name}`.toLowerCase();
-    const email = t.email?.toLowerCase() || "";
-    const phone = t.phone?.toLowerCase() || "";
-    const roomNumber = t.current_room?.room_number?.toLowerCase() || "";
-    const search = searchTerm.toLowerCase();
-    return (
-      fullName.includes(search) ||
-      email.includes(search) ||
-      phone.includes(search) ||
-      roomNumber.includes(search)
-    );
-  });
+    .filter((t) => t.action === "2")
+    .filter((t) => {
+      const fullName = `${t.first_name} ${t.last_name}`.toLowerCase();
+      const email = t.email?.toLowerCase() || "";
+      const phone = t.phone?.toLowerCase() || "";
+      const roomNumber = t.current_room?.room_number?.toLowerCase() || "";
+      const search = searchTerm.toLowerCase();
+      return (
+        fullName.includes(search) ||
+        email.includes(search) ||
+        phone.includes(search) ||
+        roomNumber.includes(search)
+      );
+    });
 
   const [reloadFlag, setReloadFlag] = useState(false);
 
@@ -117,8 +135,8 @@ const TenantsPageOld = ({ children }) => {
 
       if (!error && data) {
         const capacityMap = {};
-        data.forEach(room => {
-          capacityMap[room.id] = room.capacity || 0;
+        data.forEach((room) => {
+          capacityMap[room.id] = room.capacity || 2;
         });
         setRoomCapacityMap(capacityMap);
       } else {
@@ -130,10 +148,14 @@ const TenantsPageOld = ({ children }) => {
 
   const handleEditTenant = (tenant) => {
     setEditingTenant(tenant);
-    setSelectedRoom(tenant.current_room ? {
-      id: tenant.current_room.id,
-      room_number: tenant.current_room.room_number,
-    } : null);
+    setSelectedRoom(
+      tenant.current_room
+        ? {
+            id: tenant.current_room.id,
+            room_number: tenant.current_room.room_number,
+          }
+        : null
+    );
     setIsFormOpen(true);
   };
 
@@ -159,13 +181,25 @@ const TenantsPageOld = ({ children }) => {
   };
 
   const handleDeleteTenant = (tenant) => {
-    if (confirm(t("tenants.confirmDelete", { name: `${tenant.first_name} ${tenant.last_name}` }))) {
+    if (
+      confirm(
+        t("tenants.confirmDelete", {
+          name: `${tenant.first_name} ${tenant.last_name}`,
+        })
+      )
+    ) {
       deleteTenant(tenant.id);
     }
   };
 
   const handleDeleteRentedchild = (tenant) => {
-    if (confirm(t("tenants.confirmDeleteChild", { name: `${tenant.first_name} ${tenant.last_name}` }))) {
+    if (
+      confirm(
+        t("tenants.confirmDeleteChild", {
+          name: `${tenant.first_name} ${tenant.last_name}`,
+        })
+      )
+    ) {
       deleteRentedchild(tenant.id);
     }
   };
@@ -185,7 +219,7 @@ const TenantsPageOld = ({ children }) => {
 
   return (
     <>
-     <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -198,7 +232,7 @@ const TenantsPageOld = ({ children }) => {
         open={createUserOpen}
         onOpenChange={setCreateUserOpen}
       />
-      
+
       <div className="animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -210,13 +244,11 @@ const TenantsPageOld = ({ children }) => {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>{t("tenants.searchTitle")}</CardTitle>
-            <CardDescription>
-              {t("tenants.searchDesc")}
-            </CardDescription>
+            <CardDescription>{t("tenants.searchDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Input 
-              placeholder={t("tenants.searchPlaceholder")} 
+            <Input
+              placeholder={t("tenants.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
@@ -230,7 +262,7 @@ const TenantsPageOld = ({ children }) => {
             <CardDescription>
               {t("tenants.showCount", {
                 filtered: filteredTenants.length,
-                total: tenants.filter(t =>  t.action == "2" ).length,
+                total: tenants.filter((t) => t.action == "2").length,
               })}
             </CardDescription>
           </CardHeader>
@@ -243,7 +275,9 @@ const TenantsPageOld = ({ children }) => {
                     <TableHead>{t("tenants.phone")}</TableHead>
                     <TableHead>{t("tenants.address")}</TableHead>
                     <TableHead>{t("tenants.createdAt")}</TableHead>
-                    <TableHead className="w-[100px]">{t("common.actions")}</TableHead>
+                    <TableHead className="w-[100px]">
+                      {t("common.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -252,7 +286,9 @@ const TenantsPageOld = ({ children }) => {
                       <TableCell colSpan={6} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <Users className="h-8 w-8 text-muted-foreground" />
-                          <p className="text-muted-foreground">{t("tenants.noData")}</p>
+                          <p className="text-muted-foreground">
+                            {t("tenants.noData")}
+                          </p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -269,17 +305,20 @@ const TenantsPageOld = ({ children }) => {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar>
-                                <AvatarImage 
-                                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`} 
-                                  alt={fullName} 
+                                <AvatarImage
+                                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`}
+                                  alt={fullName}
                                 />
                                 <AvatarFallback>
-                                  {tenant.first_name.charAt(0)}{tenant.last_name.charAt(0)}
+                                  {tenant.first_name.charAt(0)}
+                                  {tenant.last_name.charAt(0)}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <p className="font-medium">{fullName}</p>
-                                <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {tenant.email}
+                                </p>
                               </div>
                             </div>
                           </TableCell>
@@ -288,7 +327,9 @@ const TenantsPageOld = ({ children }) => {
                             {tenant.address || "-"}
                           </TableCell>
                           <TableCell>
-                            {new Date(tenant.created_at!).toLocaleDateString('th-TH')}
+                            {new Date(tenant.created_at!).toLocaleDateString(
+                              "th-TH"
+                            )}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -298,12 +339,18 @@ const TenantsPageOld = ({ children }) => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewDetails(tenant)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleViewDetails(tenant)}
+                                >
                                   <Eye className="mr-2 h-4 w-4" />
                                   {t("tenants.viewDetails")}
                                 </DropdownMenuItem>
                                 {tenant.image && (
-                                  <DropdownMenuItem onClick={() => handleViewContractImage(tenant)}>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleViewContractImage(tenant)
+                                    }
+                                  >
                                     <Eye className="mr-2 h-4 w-4" />
                                     {t("tenants.viewContractImage")}
                                   </DropdownMenuItem>
@@ -321,7 +368,7 @@ const TenantsPageOld = ({ children }) => {
           </CardContent>
         </Card>
 
-       <TenantFormDialog
+        <TenantFormDialog
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
           tenant={editingTenant}

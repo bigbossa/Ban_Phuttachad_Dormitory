@@ -36,7 +36,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DoorClosed, MoreVertical, Plus, Edit, Eye, UserPlus } from "lucide-react";
+import {
+  DoorClosed,
+  MoreVertical,
+  Plus,
+  Edit,
+  Eye,
+  UserPlus,
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import RoomEditDialog from "@/components/rooms/RoomEditDialog";
@@ -63,23 +70,33 @@ export default function RoomsPage() {
 
   // สำหรับเปิด dialog เพิ่มผู้เช่า และเก็บ room info ที่จะเพิ่มผู้เช่า
   const [tenantFormOpen, setTenantFormOpen] = useState(false);
-  const [selectedRoomInfo, setSelectedRoomInfo] = useState<{ id: string; room_number: string } | null>(null);
+  const [selectedRoomInfo, setSelectedRoomInfo] = useState<{
+    id: string;
+    room_number: string;
+  } | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
   const [newRoom, setNewRoom] = useState({
     room_number: "",
-    room_type: "", // เริ่มต้นเป็นค่าว่าง
+    room_type: "Standard Double", // ฟิกเป็นห้องคู่
     status: "vacant",
     price: 3500,
-    capacity: 0, // เริ่มต้น 0 เพราะยังไม่ได้เลือก
+    capacity: 2, // กำหนดเป็น 2 คนตลอด
     floor: 1,
   });
 
-const { settings } = useSystemSettings();
+  const { settings } = useSystemSettings();
   const roomRent = settings.depositRate || 0;
   const floor = settings.floor || 0;
+
+  // ตั้งค่าเริ่มต้นของราคาให้ตรงกับค่าจากระบบ เมื่อโหลดค่า settings แล้ว
+  useEffect(() => {
+    if (roomRent > 0) {
+      setNewRoom((prev) => ({ ...prev, price: roomRent }));
+    }
+  }, [roomRent]);
+
   useEffect(() => {
     fetchRooms();
   }, []);
@@ -106,96 +123,101 @@ const { settings } = useSystemSettings();
     }
   };
 
- const handleAddRoom = async () => {
-  // ตรวจสอบข้อมูลว่ากรอกครบหรือไม่
-  if (
-    !newRoom.room_number ||
-    !newRoom.room_type ||
-    !newRoom.status ||
-    newRoom.price === undefined ||
-    newRoom.capacity === undefined ||
-    newRoom.floor === undefined
-  ) {
-    toast({
-      title: "กรุณากรอกข้อมูลให้ครบทุกช่อง",
-      variant: "destructive",
-    });
-    return; // ไม่ส่งข้อมูลถ้ายังไม่ครบ
-  }
+  const handleAddRoom = async () => {
+    // ตรวจสอบข้อมูลว่ากรอกครบหรือไม่
+    if (
+      !newRoom.room_number ||
+      !newRoom.room_type ||
+      !newRoom.status ||
+      newRoom.price === undefined ||
+      newRoom.capacity === undefined ||
+      newRoom.floor === undefined
+    ) {
+      toast({
+        title: "กรุณากรอกข้อมูลให้ครบทุกช่อง",
+        variant: "destructive",
+      });
+      return; // ไม่ส่งข้อมูลถ้ายังไม่ครบ
+    }
 
-  try {
-    const { data, error } = await supabase
-      .from("rooms")
-      .insert([newRoom])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("rooms")
+        .insert([newRoom])
+        .select()
+        .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    setRooms([...rooms, data]);
-    setDialogOpen(false);
-    toast({ title: "Room Added", description: `Room ${newRoom.room_number} added.` });
+      setRooms([...rooms, data]);
+      setDialogOpen(false);
+      toast({
+        title: "Room Added",
+        description: `Room ${newRoom.room_number} added.`,
+      });
 
-    // reset form
-    setNewRoom({
-      room_number: "",
-      room_type: "",
-      status: "vacant",
-      price: 3500,
-      capacity: 0,
-      floor: 1,
-    });
-  } catch (err) {
-    toast({
-      title: "Error",
-      description: "Failed to add room.",
-      variant: "destructive",
-    });
-  }
-};
-
+      // reset form
+      setNewRoom({
+        room_number: "",
+        room_type: "Standard Double",
+        status: "vacant",
+        price: roomRent,
+        capacity: 2,
+        floor: 1,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to add room.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleChangeRoomStatus = async (id: string, status: string) => {
-      try {
-        const { error } = await supabase
-          .from('rooms')
-          .update({ status, updated_at: new Date().toISOString() })
-          .eq('id', id);
-  
-        if (error) {
-          console.error('Error updating room status:', error);
-          toast({
-            title: "Error",
-            description: "Failed to update room status.",
-            variant: "destructive",
-          });
-          return;
-        }
-  
-        setRooms(rooms.map((room) => 
-          room.id === id ? { ...room, status } : room
-        ));
-        
-        toast({
-          title: "Room Status Updated",
-          description: `Room status has been updated to ${status}.`,
-        });
-      } catch (err) {
-        console.error('Error in handleChangeRoomStatus:', err);
+    try {
+      const { error } = await supabase
+        .from("rooms")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error updating room status:", error);
         toast({
           title: "Error",
-          description: "An unexpected error occurred while updating room status.",
+          description: "Failed to update room status.",
           variant: "destructive",
         });
+        return;
       }
-    };
+
+      setRooms(
+        rooms.map((room) => (room.id === id ? { ...room, status } : room))
+      );
+
+      toast({
+        title: "Room Status Updated",
+        description: `Room status has been updated to ${status}.`,
+      });
+    } catch (err) {
+      console.error("Error in handleChangeRoomStatus:", err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while updating room status.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // กรองห้องตาม search และ filter
   const filteredRooms = rooms.filter((room) => {
-    const matchSearch = room.room_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === "all" || room.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchType = typeFilter === "all" || room.room_type.toLowerCase() === typeFilter.toLowerCase();
-    return matchSearch && matchStatus && matchType;
+    const matchSearch = room.room_number
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchStatus =
+      statusFilter === "all" ||
+      room.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -234,7 +256,7 @@ const { settings } = useSystemSettings();
       {/* Header + Add Room Button */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{t("rooms.management")}</h1>
-      
+
         {(user?.role === "admin" || user?.role === "staff") && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -250,7 +272,10 @@ const { settings } = useSystemSettings();
 
               <div className="space-y-4 py-4">
                 <div>
-                  <label htmlFor="roomNumber" className="block mb-1 font-medium">
+                  <label
+                    htmlFor="roomNumber"
+                    className="block mb-1 font-medium"
+                  >
                     {t("rooms.number")}
                   </label>
                   <Input
@@ -267,29 +292,11 @@ const { settings } = useSystemSettings();
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="roomType" className="block mb-1 font-medium">
-                    {t("rooms.type")}
-                  </label>
-                  <Select
-                    id="roomType"
-                    value={newRoom.room_type}
-                    onValueChange={(v) => {
-                      const capacity =
-                        v === t("Standard.Single") ? 1 :
-                        v === t("Standard.Double") ? 2 : 0;
-                      setNewRoom({ ...newRoom, room_type: v, capacity });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("rooms.type") + "..."} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Standard Single">{t("Standard.Single")}</SelectItem>
-                      <SelectItem value="Standard Double">{t("Standard.Double")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* ซ่อนประเภทห้อง ฟิกเป็นห้องคู่ */}
+                <input type="hidden" value={newRoom.room_type} />
+
+                {/* ซ่อนความจุ (คน) */}
+                <input type="hidden" value={newRoom.capacity} />
 
                 <div>
                   <label htmlFor="price" className="block mb-1 font-medium">
@@ -299,44 +306,9 @@ const { settings } = useSystemSettings();
                     id="price"
                     type="number"
                     placeholder={t("rooms.rent")}
-                    value={roomRent}
-                    onChange={(e) =>
-                      setNewRoom({ ...newRoom, price: Number(e.target.value) })
-                    }
+                    value={newRoom.price}
+                    disabled
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="capacity" className="block mb-1 font-medium">
-                    {t("rooms.capacity")}
-                  </label>
-
-                  {newRoom.room_type === "" ? (
-                    <Input
-                      id="capacity"
-                      placeholder={t("rooms.type") + "..."}
-                      disabled
-                      value=""
-                    />
-                  ) : newRoom.room_type === "Standard Single" ? (
-                    <Input
-                      id="capacity"
-                      type="number"
-                      min={1}
-                      max={1}
-                      value={1}
-                      disabled
-                    />
-                  ) : (
-                    <Input
-                      id="capacity"
-                      type="number"
-                      min={2}
-                      max={2}
-                      value={2}
-                      disabled
-                    />
-                  )}
                 </div>
 
                 <div>
@@ -386,18 +358,9 @@ const { settings } = useSystemSettings();
               <SelectItem value="all">{t("All Statuses")}</SelectItem>
               <SelectItem value="vacant">{t("satatus.vacant")}</SelectItem>
               <SelectItem value="occupied">{t("satatus.occupied")}</SelectItem>
-              <SelectItem value="maintenance">{t("satatus.maintenance")}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("rooms.allTypes") || "All Types"}</SelectItem>
-              <SelectItem value="Standard Single">{t("Standard.Single")}</SelectItem>
-              <SelectItem value="Standard Double">{t("Standard.Double")}</SelectItem>
+              <SelectItem value="maintenance">
+                {t("satatus.maintenance")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -409,10 +372,8 @@ const { settings } = useSystemSettings();
           <TableHeader>
             <TableRow>
               <TableHead>{t("rooms.number")}</TableHead>
-              <TableHead>{t("rooms.type")}</TableHead>
               <TableHead>{t("rooms.status")}</TableHead>
               <TableHead>{t("rooms.rent")}</TableHead>
-              <TableHead>{t("rooms.capacity")}</TableHead>
               <TableHead>{t("rooms.floor")}</TableHead>
               <TableHead className="text-right">{t("Actions.text")}</TableHead>
             </TableRow>
@@ -425,7 +386,6 @@ const { settings } = useSystemSettings();
                     <DoorClosed className="h-4 w-4 mr-2 text-muted-foreground" />
                     {room.room_number}
                   </TableCell>
-                  <TableCell>{t(room.room_type)}</TableCell>
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
@@ -435,8 +395,7 @@ const { settings } = useSystemSettings();
                       {t(`satatus.${room.status}`)}
                     </span>
                   </TableCell>
-                  <TableCell>{formatPrice(roomRent)}</TableCell>
-                  <TableCell>{room.capacity}</TableCell>
+                  <TableCell>{formatPrice(room.price)}</TableCell>
                   <TableCell>{room.floor}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -447,7 +406,9 @@ const { settings } = useSystemSettings();
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{t("Actions.text")}</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                          {t("Actions.text")}
+                        </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => {
@@ -478,41 +439,55 @@ const { settings } = useSystemSettings();
                               <UserPlus className="mr-2 h-4 w-4" />
                               เพิ่มลูกเช่า
                             </DropdownMenuItem> */}
-                        
-                              {room.status === "vacant" && (
-                                <>
-                                 <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-                                  {/* <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "occupied")}>
-                                    Set as Occupied
-                                  </DropdownMenuItem> */}
-                                  <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "maintenance")}>
-                                    Set as Maintenance
-                                  </DropdownMenuItem>
-                                </>
-                              )}
 
-                              {room.status === "maintenance" && (
-                                <>
-                                 <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-                                  <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "vacant")}>
-                                    Set as Vacant
-                                  </DropdownMenuItem>
-                                  {/* <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "occupied")}>
+                            {room.status === "vacant" && (
+                              <>
+                                <DropdownMenuLabel>
+                                  Change Status
+                                </DropdownMenuLabel>
+                                {/* <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "occupied")}>
                                     Set as Occupied
                                   </DropdownMenuItem> */}
-                                </>
-                              )}
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleChangeRoomStatus(
+                                      room.id,
+                                      "maintenance"
+                                    )
+                                  }
+                                >
+                                  Set as Maintenance
+                                </DropdownMenuItem>
+                              </>
+                            )}
+
+                            {room.status === "maintenance" && (
+                              <>
+                                <DropdownMenuLabel>
+                                  Change Status
+                                </DropdownMenuLabel>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleChangeRoomStatus(room.id, "vacant")
+                                  }
+                                >
+                                  Set as Vacant
+                                </DropdownMenuItem>
+                                {/* <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "occupied")}>
+                                    Set as Occupied
+                                  </DropdownMenuItem> */}
+                              </>
+                            )}
                           </>
-                          )}
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
-            ) :           
-             (
+            ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4">
+                <TableCell colSpan={6} className="text-center py-4">
                   {t("No rooms found. Try adjusting your search or filters.")}
                 </TableCell>
               </TableRow>
@@ -528,7 +503,11 @@ const { settings } = useSystemSettings();
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           onRoomUpdated={(updatedRoom) =>
-            setRooms(rooms.map((r) => (r.id === updatedRoom.id ? updatedRoom : r)))
+            setRooms(
+              rooms.map((r) =>
+                r.id === updatedRoom.id ? { ...r, ...updatedRoom } : r
+              )
+            )
           }
         />
       )}

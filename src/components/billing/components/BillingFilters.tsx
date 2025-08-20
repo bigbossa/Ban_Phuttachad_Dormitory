@@ -6,12 +6,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Filter } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -32,7 +32,7 @@ export default function BillingFilters({
   statusFilter,
   onStatusFilterChange,
   selectedMonth,
-  onMonthChange
+  onMonthChange,
 }: BillingFiltersProps) {
   const { t } = useLanguage();
 
@@ -51,13 +51,11 @@ export default function BillingFilters({
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>{t("billing.filtersTitle")}</CardTitle>
-        <CardDescription>
-          {t("billing.filtersDesc")}
-        </CardDescription>
+        <CardDescription>{t("billing.filtersDesc")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-4">
-          <Input 
+          <Input
             placeholder={t("billing.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -72,9 +70,15 @@ export default function BillingFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("billing.status_all")}</SelectItem>
-                  <SelectItem value="paid">{t("billing.status_paid")}</SelectItem>
-                  <SelectItem value="pending">{t("billing.status_pending")}</SelectItem>
-                  <SelectItem value="overdue">{t("billing.status_overdue")}</SelectItem>
+                  <SelectItem value="paid">
+                    {t("billing.status_paid")}
+                  </SelectItem>
+                  <SelectItem value="pending">
+                    {t("billing.status_pending")}
+                  </SelectItem>
+                  <SelectItem value="overdue">
+                    {t("billing.status_overdue")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

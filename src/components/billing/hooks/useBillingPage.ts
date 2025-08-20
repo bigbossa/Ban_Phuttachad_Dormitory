@@ -41,33 +41,37 @@ export const useBillingPage = () => {
 
       // 1. ดึงข้อมูล billing ทั้งหมด
       const { data: billingData, error: billingError } = await supabase
-        .from('billing')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("billing")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (billingError) throw billingError;
 
       // 2. ดึงข้อมูล rooms
       const { data: roomsData, error: roomsError } = await supabase
-        .from('rooms')
-        .select('id, room_number');
+        .from("rooms")
+        .select("id, room_number");
       if (roomsError) throw roomsError;
 
       // 3. ดึงข้อมูล tenants
       const { data: tenantsData, error: tenantsError } = await supabase
-        .from('tenants')
-        .select('id, first_name, last_name');
+        .from("tenants")
+        .select("id, first_name, last_name");
       if (tenantsError) throw tenantsError;
 
       // 4. ประกบข้อมูลเข้ากับ billing
-      const result = (billingData || []).map(bill => ({
+      const result = (billingData || []).map((bill) => ({
         ...bill,
-        rooms: roomsData?.find(r => String(r.id) === String(bill.room_id)) || { room_number: '-' },
-        tenants: tenantsData?.find(t => String(t.id) === String(bill.tenant_id)) || { first_name: '-', last_name: '-' }
+        rooms: roomsData?.find(
+          (r) => String(r.id) === String(bill.room_id)
+        ) || { room_number: "-" },
+        tenants: tenantsData?.find(
+          (t) => String(t.id) === String(bill.tenant_id)
+        ) || { first_name: "-", last_name: "-" },
       }));
 
       setBillings(result);
     } catch (err) {
-      console.error('Error in fetchBillings:', err);
+      console.error("Error in fetchBillings:", err);
       toast({
         title: "Error",
         description: "Failed to fetch billing records",
@@ -83,36 +87,45 @@ export const useBillingPage = () => {
     fetchBillings();
   }, [fetchBillings]);
 
-  const filteredBillings = billings.filter(billing => {
+  const filteredBillings = billings.filter((billing) => {
     const billingDate = new Date(billing.billing_month);
-    const matchesSearch = 
-      billing.tenants.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      billing.tenants.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (`${billing.tenants.first_name} ${billing.tenants.last_name}`).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      billing.tenants.first_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      billing.tenants.last_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      `${billing.tenants.first_name} ${billing.tenants.last_name}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       billing.receipt_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      billing.rooms.room_number.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || billing.status === statusFilter;
-    
-    const matchesMonth = 
-      billingDate.getMonth() === selectedMonth.getMonth() && 
+      billing.rooms.room_number
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || billing.status === statusFilter;
+
+    const matchesMonth =
+      billingDate.getMonth() === selectedMonth.getMonth() &&
       billingDate.getFullYear() === selectedMonth.getFullYear();
-    
+
     return matchesSearch && matchesStatus && matchesMonth;
   });
 
   const handleMarkAsPaid = async (billingId: string) => {
     try {
       const { error } = await supabase
-        .from('billing')
-        .update({ 
-          status: 'paid',
-          paid_date: new Date().toISOString().split('T')[0]
+        .from("billing")
+        .update({
+          status: "paid",
+          paid_date: new Date().toISOString().split("T")[0],
         })
-        .eq('id', billingId);
+        .eq("id", billingId);
 
       if (error) {
-        console.error('Error updating billing status:', error);
+        console.error("Error updating billing status:", error);
         toast({
           title: "Error",
           description: "Failed to update payment status",
@@ -128,7 +141,7 @@ export const useBillingPage = () => {
 
       fetchBillings();
     } catch (err) {
-      console.error('Error in handleMarkAsPaid:', err);
+      console.error("Error in handleMarkAsPaid:", err);
       toast({
         title: "Error",
         description: "An unexpected error occurred",

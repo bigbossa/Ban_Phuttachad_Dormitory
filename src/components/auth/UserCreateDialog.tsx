@@ -62,7 +62,8 @@ interface Province {
 function transformData(): Province[] {
   const tambonsByAmphure: Record<number, Tambon[]> = {};
   tambonsRaw.forEach((tambon: Tambon) => {
-    if (!tambonsByAmphure[tambon.amphure_id]) tambonsByAmphure[tambon.amphure_id] = [];
+    if (!tambonsByAmphure[tambon.amphure_id])
+      tambonsByAmphure[tambon.amphure_id] = [];
     tambonsByAmphure[tambon.amphure_id].push(tambon);
   });
 
@@ -76,7 +77,6 @@ function transformData(): Province[] {
     amphoes: amphoesWithDistricts.filter((amp) => amp.province_id === prov.id),
   }));
 }
-
 
 const userSchema = z.object({
   email: z.string().email("กรุณาใส่อีเมลที่ถูกต้อง"),
@@ -128,13 +128,17 @@ export const UserCreateDialog = ({
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<"form" | "review">("form");
-  const [formData, setFormData] = useState<UserFormData & { address?: string } | null>(null);
+  const [formData, setFormData] = useState<
+    (UserFormData & { address?: string }) | null
+  >(null);
   const { session, user } = useAuth();
   const contractRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const data = useMemo(() => transformData(), []);
 
-  const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
+  const [selectedProvince, setSelectedProvince] = useState<Province | null>(
+    null
+  );
   const [selectedAmphoe, setSelectedAmphoe] = useState<Amphure | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<Tambon | null>(null);
 
@@ -146,7 +150,6 @@ export const UserCreateDialog = ({
   const districtOptions = selectedAmphoe
     ? selectedAmphoe.districts.map((d) => ({ value: d.id, label: d.name_th }))
     : [];
-
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -171,7 +174,10 @@ export const UserCreateDialog = ({
   const { data: availableRooms = [] } = useQuery({
     queryKey: ["available-rooms-with-capacity"],
     queryFn: async () => {
-      const { data: rooms, error: roomsError } = await supabase.from("rooms").select("*").order("room_number");
+      const { data: rooms, error: roomsError } = await supabase
+        .from("rooms")
+        .select("*")
+        .order("room_number");
       if (roomsError) throw roomsError;
 
       const roomsWithOccupancy: RoomWithOccupancy[] = await Promise.all(
@@ -187,9 +193,10 @@ export const UserCreateDialog = ({
           };
         })
       );
-      return roomsWithOccupancy.filter(
-        (room) => room.status === "vacant" || room.current_occupants < room.capacity
-      );
+      return roomsWithOccupancy.filter((room) => {
+        const cap = Math.max(room.capacity ?? 2, 2);
+        return room.status === "vacant" || room.current_occupants < cap;
+      });
     },
     enabled: open,
   });
@@ -220,22 +227,27 @@ export const UserCreateDialog = ({
     setLoading(true);
     try {
       // 1. สร้าง user
-      const { data: result, error } = await supabase.functions.invoke("create-user", {
-        body: {
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName, 
-          lastName: formData.lastName,   
-          phone: formData.phone,
-          role: formData.role,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data: result, error } = await supabase.functions.invoke(
+        "create-user",
+        {
+          body: {
+            email: formData.email,
+            password: formData.password,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
+            role: formData.role,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
 
       if (error || result?.error) {
-        toast.error(result?.error || error?.message || "ไม่สามารถสร้างผู้ใช้ได้");
+        toast.error(
+          result?.error || error?.message || "ไม่สามารถสร้างผู้ใช้ได้"
+        );
         setLoading(false);
         return;
       }
@@ -309,7 +321,8 @@ export const UserCreateDialog = ({
 
       // โหลดฟอนต์ Sarabun
       const link = document.createElement("link");
-      link.href = "https://fonts.googleapis.com/css2?family=Sarabun&display=swap";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Sarabun&display=swap";
       link.rel = "stylesheet";
       document.head.appendChild(link);
       await document.fonts.ready;
@@ -334,7 +347,10 @@ export const UserCreateDialog = ({
         width: canvas.width,
         height: canvas.height,
       };
-      const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
+      const ratio = Math.min(
+        pdfWidth / imgProps.width,
+        pdfHeight / imgProps.height
+      );
       const imgWidth = imgProps.width * ratio;
       const imgHeight = imgProps.height * ratio;
       pdf.addImage(
@@ -352,17 +368,22 @@ export const UserCreateDialog = ({
       reader.onloadend = async () => {
         const base64data = reader.result as string;
         // ส่งไป API
-        const response = await fetch("https://api-drombanput.onrender.com/server/insert_image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tenant_id: tenantData.id,
-            image: base64data,
-          }),
-        });
+        const response = await fetch(
+          "https://api-drombanput.onrender.com/server/insert_image",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tenant_id: tenantData.id,
+              image: base64data,
+            }),
+          }
+        );
         const result = await response.json();
         if (result.status === 200) {
-          toast.success("สร้างบัญชีผู้ใช้และบันทึก PDF ไปยัง Supabase Storage เรียบร้อย!");
+          toast.success(
+            "สร้างบัญชีผู้ใช้และบันทึก PDF ไปยัง Supabase Storage เรียบร้อย!"
+          );
           form.reset();
           setFormData(null);
           setStep("form");
@@ -373,7 +394,9 @@ export const UserCreateDialog = ({
           queryClient.invalidateQueries({ queryKey: ["occupancy"] });
           onSuccess?.();
         } else {
-          toast.error("สร้างบัญชีสำเร็จ แต่อัปโหลด PDF ไม่สำเร็จ: " + result.message);
+          toast.error(
+            "สร้างบัญชีสำเร็จ แต่อัปโหลด PDF ไม่สำเร็จ: " + result.message
+          );
         }
         setLoading(false);
       };
@@ -487,102 +510,136 @@ export const UserCreateDialog = ({
                   )}
                 />
                 <FormField
-            control={form.control}
-            name="province"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>จังหวัด</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={provinceOptions}
-                    value={selectedProvince ? { value: selectedProvince.id, label: selectedProvince.name_th } : null}
-                    onChange={(option) => {
-                      const prov = data.find((p) => p.id === option?.value) || null;
-                      setSelectedProvince(prov);
-                      setSelectedAmphoe(null);
-                      setSelectedDistrict(null);
-                      form.setValue("province", option?.label || "");
-                      form.setValue("district", "");
-                      form.setValue("subDistrict", "");
-                    }}
-                    placeholder="เลือกจังหวัด"
-                    isClearable
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="district"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>อำเภอ/เขต</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={amphoeOptions}
-                    value={selectedAmphoe ? { value: selectedAmphoe.id, label: selectedAmphoe.name_th } : null}
-                    onChange={(option) => {
-                      if (!selectedProvince) return;
-                      const amp = selectedProvince.amphoes.find((a) => a.id === option?.value) || null;
-                      setSelectedAmphoe(amp);
-                      setSelectedDistrict(null);
-                      form.setValue("district", option?.label || "");
-                      form.setValue("subDistrict", "");
-                    }}
-                    placeholder={selectedProvince ? "เลือกอำเภอ" : "กรุณาเลือกจังหวัดก่อน"}
-                    isClearable
-                    isDisabled={!selectedProvince}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="subDistrict"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>ตำบล/แขวง</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={districtOptions}
-                    value={selectedDistrict ? { value: selectedDistrict.id, label: selectedDistrict.name_th } : null}
-                    onChange={(option) => {
-                      if (!selectedAmphoe) return;
-                      const dist = selectedAmphoe.districts.find((d) => d.id === option?.value) || null;
-                      setSelectedDistrict(dist);
-                      form.setValue("subDistrict", option?.label || "");
-                    }}
-                    placeholder={selectedAmphoe ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"}
-                    isClearable
-                    isDisabled={!selectedAmphoe}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  control={form.control}
+                  name="province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>จังหวัด</FormLabel>
+                      <FormControl>
+                        <MySelect
+                          {...field}
+                          options={provinceOptions}
+                          value={
+                            selectedProvince
+                              ? {
+                                  value: selectedProvince.id,
+                                  label: selectedProvince.name_th,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            const prov =
+                              data.find((p) => p.id === option?.value) || null;
+                            setSelectedProvince(prov);
+                            setSelectedAmphoe(null);
+                            setSelectedDistrict(null);
+                            form.setValue("province", option?.label || "");
+                            form.setValue("district", "");
+                            form.setValue("subDistrict", "");
+                          }}
+                          placeholder="เลือกจังหวัด"
+                          isClearable
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-             <div>
-              <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
-              <input
-                type="text"
-                readOnly
-                className="w-full border rounded px-3 py-2 bg-gray-100"
-                value={selectedDistrict?.zip_code || ""}
-                placeholder="รหัสไปรษณีย์"
-              />
-            </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="district"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>อำเภอ/เขต</FormLabel>
+                      <FormControl>
+                        <MySelect
+                          {...field}
+                          options={amphoeOptions}
+                          value={
+                            selectedAmphoe
+                              ? {
+                                  value: selectedAmphoe.id,
+                                  label: selectedAmphoe.name_th,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            if (!selectedProvince) return;
+                            const amp =
+                              selectedProvince.amphoes.find(
+                                (a) => a.id === option?.value
+                              ) || null;
+                            setSelectedAmphoe(amp);
+                            setSelectedDistrict(null);
+                            form.setValue("district", option?.label || "");
+                            form.setValue("subDistrict", "");
+                          }}
+                          placeholder={
+                            selectedProvince
+                              ? "เลือกอำเภอ"
+                              : "กรุณาเลือกจังหวัดก่อน"
+                          }
+                          isClearable
+                          isDisabled={!selectedProvince}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="subDistrict"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ตำบล/แขวง</FormLabel>
+                      <FormControl>
+                        <MySelect
+                          {...field}
+                          options={districtOptions}
+                          value={
+                            selectedDistrict
+                              ? {
+                                  value: selectedDistrict.id,
+                                  label: selectedDistrict.name_th,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            if (!selectedAmphoe) return;
+                            const dist =
+                              selectedAmphoe.districts.find(
+                                (d) => d.id === option?.value
+                              ) || null;
+                            setSelectedDistrict(dist);
+                            form.setValue("subDistrict", option?.label || "");
+                          }}
+                          placeholder={
+                            selectedAmphoe ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"
+                          }
+                          isClearable
+                          isDisabled={!selectedAmphoe}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
+                <input
+                  type="text"
+                  readOnly
+                  className="w-full border rounded px-3 py-2 bg-gray-100"
+                  value={selectedDistrict?.zip_code || ""}
+                  placeholder="รหัสไปรษณีย์"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4 items-end">
                 <FormField
                   control={form.control}
@@ -623,22 +680,26 @@ export const UserCreateDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
-                        {availableRooms.filter(room => room.current_occupants < 1).length === 0 ? (
+                        {availableRooms.filter(
+                          (room) => room.current_occupants < 2
+                        ).length === 0 ? (
                           <div className="px-3 py-2 text-muted-foreground text-sm">
                             ไม่มีห้องว่าง
                           </div>
                         ) : (
                           availableRooms
-                            .filter(room => room.current_occupants < 1)
+                            .filter((room) => room.current_occupants < 2)
                             .map((room) => (
                               <SelectItem key={room.id} value={room.id}>
                                 <div className="flex items-center justify-between w-full">
                                   <span>
-                                    ห้อง {room.room_number} {/* - {room.room_type} (ชั้น {room.floor}) */}
+                                    ห้อง {room.room_number}{" "}
+                                    {/* - {room.room_type} (ชั้น {room.floor}) */}
                                   </span>
                                   <div className="flex items-center gap-2 ml-2">
                                     <Badge variant="secondary">
-                                      {room.current_occupants}/{room.capacity} คน
+                                      {room.current_occupants}/
+                                      {Math.max(room.capacity ?? 2, 2)} คน
                                     </Badge>
                                     {/* <span className="text-sm text-muted-foreground">
                                       {room.price.toLocaleString()} บาท
@@ -664,7 +725,7 @@ export const UserCreateDialog = ({
                       <div className="relative">
                         <Input
                           type={showPassword ? "text" : "password"}
-                           placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)"
+                          placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)"
                           {...field}
                         />
                         <button
@@ -704,7 +765,6 @@ export const UserCreateDialog = ({
                     margin: "auto",
                     width: "210mm",
                     height: "297mm",
-
                   }}
                 >
                   <ContractPreview
@@ -728,10 +788,7 @@ export const UserCreateDialog = ({
               );
             })()}
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                onClick={handleConfirmAndSave}
-                disabled={loading}
-              >
+              <Button onClick={handleConfirmAndSave} disabled={loading}>
                 {loading ? "กำลังสร้าง..." : "ยืนยันลงชื่อและสร้างบัญชี"}
               </Button>
               <Button variant="outline" onClick={() => setStep("form")}>

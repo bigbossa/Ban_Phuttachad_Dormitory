@@ -29,8 +29,8 @@ type Tenant = {
   last_name: string;
   email: string | null;
   phone: string | null;
-  residents: string | null; 
-  action: string | null; 
+  residents: string | null;
+  action: string | null;
 };
 
 interface RoomDetailsDialogProps {
@@ -39,12 +39,16 @@ interface RoomDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDetailsDialogProps) {
+export default function RoomDetailsDialog({
+  room,
+  open,
+  onOpenChange,
+}: RoomDetailsDialogProps) {
   const [currentTenants, setCurrentTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(false);
 
   const { settings } = useSystemSettings();
-  const roomRent = settings.depositRate || 0;
+  const roomRent = room.price ?? (settings.depositRate || 0);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -82,7 +86,7 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
         return;
       }
 
-      console.log("✅ currentTenants data:", tenantData); 
+      console.log("✅ currentTenants data:", tenantData);
       setCurrentTenants(tenantData || []);
     } catch (err) {
       console.error("❌ Unexpected error:", err);
@@ -117,7 +121,9 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
     const [first, last] = name.split(" ");
     return (
       <Avatar className="h-8 w-8">
-        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} />
+        <AvatarImage
+          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`}
+        />
         <AvatarFallback className="text-xs">
           {first?.charAt(0)}
           {last?.charAt(0)}
@@ -132,14 +138,17 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <DoorClosed className="h-5 w-5" />
-            {t("rooms.detailsTitle", { room_number: room.room_number }) || `${t("rooms.details")} ${room.room_number}`}
+            {t("rooms.detailsTitle", { room_number: room.room_number }) ||
+              `${t("rooms.details")} ${room.room_number}`}
           </DialogTitle>
           <DialogDescription>{t("rooms.detailsDesc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">{t("rooms.status")}</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              {t("rooms.status")}
+            </span>
             <Badge className={`capitalize ${getStatusColor(room.status)}`}>
               {room.status === "vacant"
                 ? t("satatus.vacant")
@@ -149,30 +158,18 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
             </Badge>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">{t("rooms.type")}</span>
-            <span className="text-sm font-medium">
-              {t(`rooms.type.${room.room_type}`) !== `rooms.type.${room.room_type}`
-                ? t(`rooms.type.${room.room_type}`)
-                : t(room.room_type)}
-            </span>
-          </div>
+          {/* ซ่อนประเภทห้อง */}
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Banknote className="h-4 w-4" /> {t("rooms.rent")}
             </span>
             <span className="text-sm font-bold text-green-600">
-              {formatPrice(roomRent)}
+              {formatPrice(room.price)}
             </span>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" /> {t("rooms.capacity")}
-            </span>
-            <span className="text-sm font-medium">{room.capacity} {t("rooms.person") || "คน"}</span>
-          </div>
+          {/* ซ่อนความจุ (คน) */}
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -184,28 +181,43 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">{t("rooms.currentTenants")}</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {t("rooms.currentTenants")}
+              </span>
             </div>
 
             {loading ? (
-              <div className="text-sm text-muted-foreground">{t("loading")}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("loading")}
+              </div>
             ) : currentTenants.length > 0 ? (
               currentTenants
                 .filter((tenant) => tenant.action === "1")
                 .slice()
                 .sort((a, b) => {
                   const getPriority = (res: any) =>
-                    res.residents === t("rooms.mainTenant") ? 0 : res.residents === t("rooms.subTenant") ? 1 : 2;
+                    res.residents === t("rooms.mainTenant")
+                      ? 0
+                      : res.residents === t("rooms.subTenant")
+                      ? 1
+                      : 2;
                   return getPriority(a) - getPriority(b);
                 })
                 .map((tenant) => {
                   return (
-                    <div key={tenant.id} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
+                    <div
+                      key={tenant.id}
+                      className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50"
+                    >
                       <div className="text-sm font-semibold text-muted-foreground">
-                        {tenant.residents === "ผู้เช่า" ? t("rooms.mainTenant") : t("rooms.subTenant")}
+                        {tenant.residents === "ผู้เช่า"
+                          ? t("rooms.mainTenant")
+                          : t("rooms.subTenant")}
                       </div>
                       <div className="flex items-center gap-3">
-                        {renderAvatar(`${tenant.first_name} ${tenant.last_name}`)}
+                        {renderAvatar(
+                          `${tenant.first_name} ${tenant.last_name}`
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">
                             {tenant.first_name} {tenant.last_name}
@@ -219,7 +231,9 @@ export default function RoomDetailsDialog({ room, open, onOpenChange }: RoomDeta
                   );
                 })
             ) : (
-              <div className="text-sm text-muted-foreground">{t("rooms.noCurrentTenant")}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("rooms.noCurrentTenant")}
+              </div>
             )}
           </div>
 

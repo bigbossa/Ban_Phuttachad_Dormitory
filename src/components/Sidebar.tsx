@@ -13,6 +13,7 @@ import {
   Settings,
   UserCircle,
   Settings2,
+  Shield,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -69,6 +70,11 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       name: t("nav.reports"),
       href: "/reports",
       icon: FileBarChart,
+    },
+    {
+      name: t("nav.userManagement"),
+      href: "/user-management",
+      icon: Shield,
     },
     {
       name: t("nav.settings"),

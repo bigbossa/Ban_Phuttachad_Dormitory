@@ -3,10 +3,8 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { ReportSelector } from "@/components/reports/ReportSelector";
-import { OccupancyChart } from "@/components/reports/charts/OccupancyChart";
 import { RevenueChart } from "@/components/reports/charts/RevenueChart";
 import { PieCharts } from "@/components/reports/charts/PieCharts";
-import { EventsChart } from "@/components/reports/charts/EventsChart";
 import { useToast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -14,32 +12,26 @@ import html2canvas from "html2canvas";
 const ReportsPage = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [selectedReport, setSelectedReport] = useState("occupancy");
+  const [selectedReport, setSelectedReport] = useState("revenue");
   const [isExporting, setIsExporting] = useState(false);
 
   const getReportTitle = () => {
-    switch(selectedReport) {
-      case "occupancy":
-        return t("reports.occupancyTitle");
+    switch (selectedReport) {
       case "revenue":
         return t("reports.revenueTitle");
       case "rooms":
         return t("reports.roomTypeTitle");
-      case "repairs":
-        return t("reports.repairTitle");
-      case "events":
-        return t("reports.eventTitle");
       default:
-        return t("reports.defaultTitle");
+        return t("reports.revenueTitle");
     }
   };
 
   const exportToPDF = async () => {
     try {
       setIsExporting(true);
-      
+
       // Capture the chart
-      const chartElement = document.getElementById('report-container');
+      const chartElement = document.getElementById("report-container");
       if (!chartElement) {
         throw new Error("Chart element not found");
       }
@@ -48,14 +40,16 @@ const ReportsPage = () => {
         scale: 1.5,
         useCORS: true,
         logging: false,
-        backgroundColor: document.documentElement.classList.contains('dark') ? '#1a1b1e' : '#ffffff'
+        backgroundColor: document.documentElement.classList.contains("dark")
+          ? "#1a1b1e"
+          : "#ffffff",
       });
 
       // Create PDF with proper dimensions
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
+        orientation: "landscape",
+        unit: "mm",
       });
 
       // Calculate dimensions
@@ -64,12 +58,12 @@ const ReportsPage = () => {
       const margin = 10;
 
       // Calculate image dimensions to fit page with margins
-      const maxWidth = pageWidth - (margin * 2);
-      const maxHeight = pageHeight - (margin * 2) - 20; // 20mm reserved for header
-      
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2 - 20; // 20mm reserved for header
+
       let imgWidth = maxWidth;
       let imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
+
       if (imgHeight > maxHeight) {
         imgHeight = maxHeight;
         imgWidth = (canvas.width * imgHeight) / canvas.height;
@@ -78,27 +72,33 @@ const ReportsPage = () => {
       // Add title
       pdf.setFontSize(16);
       pdf.text(getReportTitle(), margin, margin + 5);
-      
+
       // Add timestamp
       pdf.setFontSize(10);
-      pdf.text(`Generated on: ${new Date().toLocaleString()}`, margin, margin + 12);
+      pdf.text(
+        `Generated on: ${new Date().toLocaleString()}`,
+        margin,
+        margin + 12
+      );
 
       // Center the image horizontally if it's smaller than max width
       const xPos = margin + (maxWidth - imgWidth) / 2;
-      
+
       // Add the image
-      pdf.addImage(imgData, 'PNG', xPos, margin + 20, imgWidth, imgHeight);
+      pdf.addImage(imgData, "PNG", xPos, margin + 20, imgWidth, imgHeight);
 
       // Save the PDF
-      pdf.save(`${selectedReport}-report-${new Date().toISOString().split('T')[0]}.pdf`);
-      
+      pdf.save(
+        `${selectedReport}-report-${new Date().toISOString().split("T")[0]}.pdf`
+      );
+
       toast({
         title: "Export successful",
         description: "Your report has been exported as PDF",
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error exporting PDF:', error);
+      console.error("Error exporting PDF:", error);
       toast({
         title: "Export failed",
         description: "There was an error exporting your report",
@@ -111,18 +111,13 @@ const ReportsPage = () => {
   };
 
   const renderReport = () => {
-    switch(selectedReport) {
-      case "occupancy":
-        return <OccupancyChart />;
+    switch (selectedReport) {
       case "revenue":
         return <RevenueChart />;
-      case "rooms":
       case "repairs":
         return <PieCharts selectedReport={selectedReport} />;
-      case "events":
-        return <EventsChart />;
       default:
-        return null;
+        return <RevenueChart />;
     }
   };
 
@@ -134,9 +129,9 @@ const ReportsPage = () => {
           <p className="text-muted-foreground">{t("reports.subtitle")}</p>
         </div>
         <div className="mt-4 md:mt-0 space-x-2">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2" 
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
             onClick={exportToPDF}
             disabled={isExporting}
           >
@@ -155,9 +150,7 @@ const ReportsPage = () => {
         setSelectedReport={setSelectedReport}
       />
 
-      <div id="report-container">
-        {renderReport()}
-      </div>
+      <div id="report-container">{renderReport()}</div>
     </div>
   );
 };

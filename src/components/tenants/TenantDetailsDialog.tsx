@@ -87,12 +87,15 @@ export default function TenantDetailsDialog({
                 alt={fullName}
               />
               <AvatarFallback>
-                {tenant.first_name.charAt(0)}{tenant.last_name.charAt(0)}
+                {tenant.first_name.charAt(0)}
+                {tenant.last_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
               <h3 className="text-lg font-semibold">{fullName}</h3>
-              <Badge variant="secondary">{tenant.residents || t("tenants.main")}</Badge>
+              <Badge variant="secondary">
+                {tenant.residents || t("tenants.main")}
+              </Badge>
             </div>
           </div>
 
@@ -104,10 +107,10 @@ export default function TenantDetailsDialog({
                 <div>
                   <p className="text-sm font-medium">{t("tenants.room")}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline">{t("tenants.room")} {tenant.current_room.room_number}</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {tenant.current_room.room_type}
-                    </span>
+                    <Badge variant="outline">
+                      {t("tenants.room")} {tenant.current_room.room_number}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground"></span>
                   </div>
                   <div className="flex items-center gap-1 mt-1">
                     <Building className="h-3 w-3 text-muted-foreground" />
@@ -124,7 +127,9 @@ export default function TenantDetailsDialog({
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{t("profile.email")}</p>
-                  <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {tenant.email}
+                  </p>
                 </div>
               </div>
             )}
@@ -134,7 +139,9 @@ export default function TenantDetailsDialog({
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{t("profile.phone")}</p>
-                  <p className="text-sm text-muted-foreground">{tenant.phone}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {tenant.phone}
+                  </p>
                 </div>
               </div>
             )}
@@ -144,7 +151,9 @@ export default function TenantDetailsDialog({
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{t("tenants.address")}</p>
-                  <p className="text-sm text-muted-foreground">{tenant.address}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {tenant.address}
+                  </p>
                 </div>
               </div>
             )}
@@ -153,8 +162,12 @@ export default function TenantDetailsDialog({
               <div className="flex items-center space-x-3">
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">{t("tenants.emergencyContact")}</p>
-                  <p className="text-sm text-muted-foreground">{tenant.emergency_contact}</p>
+                  <p className="text-sm font-medium">
+                    {t("tenants.emergencyContact")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {tenant.emergency_contact}
+                  </p>
                 </div>
               </div>
             )}
@@ -186,7 +199,9 @@ export default function TenantDetailsDialog({
                         </Avatar>
                         <div>
                           <h3 className="text-lg font-semibold">{fullName}</h3>
-                          <Badge variant="secondary">{roommate.residents || t("tenants.child")}</Badge>
+                          <Badge variant="secondary">
+                            {roommate.residents || t("tenants.child")}
+                          </Badge>
                         </div>
                       </div>
 
@@ -196,17 +211,21 @@ export default function TenantDetailsDialog({
                           <div className="flex items-center space-x-3">
                             <Home className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-sm font-medium">{t("tenants.room")}</p>
+                              <p className="text-sm font-medium">
+                                {t("tenants.room")}
+                              </p>
                               <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline">{t("tenants.room")} {roommate.current_room.room_number}</Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  {roommate.current_room.room_type}
-                                </span>
+                                <Badge variant="outline">
+                                  {t("tenants.room")}{" "}
+                                  {roommate.current_room.room_number}
+                                </Badge>
+                                <span className="text-sm text-muted-foreground"></span>
                               </div>
                               <div className="flex items-center gap-1 mt-1">
                                 <Building className="h-3 w-3 text-muted-foreground" />
                                 <span className="text-xs text-muted-foreground">
-                                  {t("tenants.floor")} {roommate.current_room.floor}
+                                  {t("tenants.floor")}{" "}
+                                  {roommate.current_room.floor}
                                 </span>
                               </div>
                             </div>
@@ -217,8 +236,12 @@ export default function TenantDetailsDialog({
                           <div className="flex items-center space-x-3">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-sm font-medium">{t("profile.email")}</p>
-                              <p className="text-sm text-muted-foreground">{roommate.email}</p>
+                              <p className="text-sm font-medium">
+                                {t("profile.email")}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {roommate.email}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -227,8 +250,12 @@ export default function TenantDetailsDialog({
                           <div className="flex items-center space-x-3">
                             <Phone className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-sm font-medium">{t("profile.phone")}</p>
-                              <p className="text-sm text-muted-foreground">{roommate.phone}</p>
+                              <p className="text-sm font-medium">
+                                {t("profile.phone")}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {roommate.phone}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -237,8 +264,12 @@ export default function TenantDetailsDialog({
                           <div className="flex items-center space-x-3">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-sm font-medium">{t("tenants.address")}</p>
-                              <p className="text-sm text-muted-foreground">{roommate.address}</p>
+                              <p className="text-sm font-medium">
+                                {t("tenants.address")}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {roommate.address}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -247,8 +278,12 @@ export default function TenantDetailsDialog({
                           <div className="flex items-center space-x-3">
                             <AlertCircle className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-sm font-medium">{t("tenants.emergencyContact")}</p>
-                              <p className="text-sm text-muted-foreground">{roommate.emergency_contact}</p>
+                              <p className="text-sm font-medium">
+                                {t("tenants.emergencyContact")}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {roommate.emergency_contact}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -261,11 +296,17 @@ export default function TenantDetailsDialog({
           )}
           <div className="text-xs text-muted-foreground mt-4">
             <p>
-              {t("tenants.checkIn")}: {new Date(tenant.created_at!).toLocaleDateString(t("language.th") === "ไทย" ? "th-TH" : "en-US")}
+              {t("tenants.checkIn")}:{" "}
+              {new Date(tenant.created_at!).toLocaleDateString(
+                t("language.th") === "ไทย" ? "th-TH" : "en-US"
+              )}
             </p>
             {tenant.updated_at && (
               <p>
-                {t("tenants.lastUpdated")}: {new Date(tenant.updated_at).toLocaleDateString(t("language.th") === "ไทย" ? "th-TH" : "en-US")}
+                {t("tenants.lastUpdated")}:{" "}
+                {new Date(tenant.updated_at).toLocaleDateString(
+                  t("language.th") === "ไทย" ? "th-TH" : "en-US"
+                )}
               </p>
             )}
           </div>

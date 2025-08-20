@@ -16,6 +16,7 @@ import TenantsPage from "./pages/TenantsPage";
 import StaffPage from "./pages/StaffPage";
 import BillingPage from "./pages/BillingPage";
 import ReportsPage from "./pages/ReportsPage";
+import UserManagementPage from "./pages/UserManagementPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
@@ -25,7 +26,9 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 
 // Protected route component that wraps protected pages
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -80,7 +83,7 @@ const App = () => (
                   </Layout>
                 }
               />
-               <Route
+              <Route
                 path="/tenantsold"
                 element={
                   <Layout>
@@ -136,6 +139,16 @@ const App = () => (
                   <Layout>
                     <ProtectedRoute>
                       <ReportsPage />
+                    </ProtectedRoute>
+                  </Layout>
+                }
+              />
+              <Route
+                path="/user-management"
+                element={
+                  <Layout>
+                    <ProtectedRoute>
+                      <UserManagementPage />
                     </ProtectedRoute>
                   </Layout>
                 }
