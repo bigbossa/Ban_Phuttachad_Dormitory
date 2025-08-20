@@ -53,7 +53,9 @@ import TenantFormDialog from "@/components/rooms/TenantFormDialog";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 import type { Database } from "@/integrations/supabase/types";
-type Room = Database["public"]["Tables"]["rooms"]["Row"];
+type Room = Database["public"]["Tables"]["rooms"]["Row"] & {
+  hasOccupants?: boolean;
+};
 
 export default function RoomsPage() {
   const { t } = useLanguage();
@@ -104,14 +106,35 @@ export default function RoomsPage() {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // ดึงข้อมูลห้องทั้งหมด
+      const { data: roomsData, error: roomsError } = await supabase
         .from("rooms")
         .select("*")
         .order("room_number", { ascending: true });
 
-      if (error) throw error;
+      if (roomsError) throw roomsError;
 
-      setRooms(data || []);
+      // ดึงข้อมูล occupancy เพื่อตรวจสอบว่าห้องไหนมีผู้เช่า
+      const { data: occupancyData, error: occupancyError } = await supabase
+        .from("occupancy")
+        .select("room_id")
+        .eq("is_current", true);
+
+      if (occupancyError) throw occupancyError;
+
+      // สร้าง Set ของ room_id ที่มีผู้เช่า
+      const occupiedRoomIds = new Set(
+        occupancyData?.map((item) => item.room_id) || []
+      );
+
+      // เพิ่ม field hasOccupants ให้กับแต่ละห้อง
+      const roomsWithOccupancy = (roomsData || []).map((room) => ({
+        ...room,
+        hasOccupants: occupiedRoomIds.has(room.id),
+      }));
+
+      setRooms(roomsWithOccupancy);
     } catch (err) {
       toast({
         title: "Error",
@@ -421,15 +444,17 @@ export default function RoomsPage() {
                         </DropdownMenuItem>
                         {(user?.role === "admin" || user?.role === "staff") && (
                           <>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedRoom(room);
-                                setEditDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              {t("edit")}
-                            </DropdownMenuItem>
+                            {!room.hasOccupants && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedRoom(room);
+                                  setEditDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t("edit")}
+                              </DropdownMenuItem>
+                            )}
                             {/* <DropdownMenuItem
                               onClick={() => {
                                 setSelectedRoomInfo({ id: room.id, room_number: room.room_number });

@@ -10,14 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -62,17 +55,58 @@ export default function RoomEditDialog({
   const handleUpdateRoom = async () => {
     try {
       setLoading(true);
+
+      // ตรวจสอบว่ามีการเปลี่ยนหมายเลขห้องหรือไม่
+      const isRoomNumberChanged = editRoom.room_number !== room.room_number;
+
+      if (isRoomNumberChanged) {
+        // อัปเดต foreign key ในตาราง repairs ก่อน
+        const { error: repairsError } = await supabase
+          .from("repairs")
+          .update({ room_number: editRoom.room_number })
+          .eq("room_number", room.room_number);
+
+        if (repairsError) {
+          console.error("Error updating repairs table:", repairsError);
+          toast({
+            title: "Error",
+            description: "Failed to update related records. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // อัปเดต foreign key ในตาราง occupancy (ใช้ room_id)
+        const { error: occupancyError } = await supabase
+          .from("occupancy")
+          .update({ room_id: room.id })
+          .eq("room_id", room.id);
+
+        if (occupancyError) {
+          console.error("Error updating occupancy table:", occupancyError);
+          toast({
+            title: "Error",
+            description: "Failed to update related records. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // สร้างข้อมูลที่จะ update โดยใช้ข้อมูลเดิมจาก room สำหรับ fields ที่แก้ไขไม่ได้
+      const updateData = {
+        room_number: editRoom.room_number,
+        room_type: room.room_type, // ใช้ข้อมูลเดิม
+        status: room.status, // ใช้ข้อมูลเดิม
+        price: room.price, // ใช้ข้อมูลเดิม
+        capacity: room.capacity, // ใช้ข้อมูลเดิม
+        floor: editRoom.floor,
+        updated_at: new Date().toISOString(),
+      };
+
       const { data, error } = await supabase
         .from("rooms")
-        .update({
-          room_number: editRoom.room_number,
-          room_type: editRoom.room_type,
-          status: editRoom.status,
-          price: editRoom.price,
-          capacity: editRoom.capacity,
-          floor: editRoom.floor,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", room.id)
         .select()
         .single();
@@ -92,6 +126,7 @@ export default function RoomEditDialog({
 
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
       queryClient.invalidateQueries({ queryKey: ["occupancy"] });
+      queryClient.invalidateQueries({ queryKey: ["repairs"] });
       toast({
         title: "Room Updated",
         description: `Room ${editRoom.room_number} has been updated successfully.`,
@@ -120,85 +155,41 @@ export default function RoomEditDialog({
               "Update the room information below."}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-roomNumber">{t("rooms.number")}</Label>
+        <div className="space-y-4 py-4 text-foreground">
+          <div>
+            <label
+              htmlFor="edit-roomNumber"
+              className="block mb-1 font-medium text-foreground"
+            >
+              {t("rooms.number")}
+            </label>
             <Input
               id="edit-roomNumber"
+              type="text"
+              placeholder={t("rooms.number")}
               value={editRoom.room_number}
               onChange={(e) =>
-                setEditRoom({ ...editRoom, room_number: e.target.value })
+                setEditRoom({
+                  ...editRoom,
+                  room_number: e.target.value.replace(/\D/g, ""),
+                })
               }
-              placeholder={t("rooms.number")}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-type">{t("rooms.type")}</Label>
-            <Select
-              value={editRoom.room_type}
-              onValueChange={(value) => {
-                const capacity = 2;
-                setEditRoom({ ...editRoom, room_type: value, capacity });
-              }}
+
+          <div>
+            <label
+              htmlFor="edit-floor"
+              className="block mb-1 font-medium text-foreground"
             >
-              <SelectTrigger>
-                <SelectValue placeholder={t("rooms.type") + "..."} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Standard Single">
-                  {t("Standard.Single")}
-                </SelectItem>
-                <SelectItem value="Standard Double">
-                  {t("Standard.Double")}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {/* <div className="space-y-2">
-            <Label htmlFor="edit-status">{t("rooms.status")}</Label>
-            <Select
-              value={editRoom.status}
-              onValueChange={(value) =>
-                setEditRoom({ ...editRoom, status: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("rooms.status")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="vacant">{t("satatus.vacant")}</SelectItem>
-                <SelectItem value="occupied">{t("satatus.occupied")}</SelectItem>
-                <SelectItem value="maintenance">{t("satatus.maintenance")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div> */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-price">{t("rooms.rent")}</Label>
-            <Input
-              id="edit-price"
-              type="number"
-              value={editRoom.price}
-              onChange={(e) =>
-                setEditRoom({ ...editRoom, price: Number(e.target.value) })
-              }
-              placeholder={t("rooms.rent")}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-capacity">{t("rooms.capacity")}</Label>
-            <Input
-              id="edit-capacity"
-              type="number"
-              value={editRoom.capacity}
-              disabled
-              placeholder={t("rooms.capacity")}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-floor">{t("rooms.floor")}</Label>
+              {t("rooms.floor")}
+            </label>
             <Input
               id="edit-floor"
               type="number"
+              placeholder={t("rooms.floor")}
+              min={1}
+              max={4}
               value={editRoom.floor}
               onChange={(e) => {
                 let val = Number(e.target.value);
@@ -206,7 +197,6 @@ export default function RoomEditDialog({
                 else if (val > 4) val = 4;
                 setEditRoom({ ...editRoom, floor: val });
               }}
-              placeholder={t("rooms.floor")}
             />
           </div>
         </div>
