@@ -116,7 +116,11 @@ export default function RepairsPage() {
   const tenantId = user?.tenant?.id;
   console.log("tenantId", tenantId);
   console.log("user", user);
-  const { data: availableRooms = [] } = useQuery({
+  const {
+    data: availableRooms = [],
+    isLoading: isLoadingRooms,
+    error: roomsError,
+  } = useQuery({
     queryKey: ["available-rooms-with-capacity"],
     queryFn: async () => {
       const { data: rooms, error: roomsError } = await supabase
@@ -213,10 +217,39 @@ export default function RepairsPage() {
 
   // เพิ่มข้อมูลลง supabase
   const handleAddRepair = async () => {
+    console.log("handleAddRepair called");
+    console.log("User role:", user?.role);
+    console.log("newRepair:", newRepair);
+    console.log("availableRooms:", availableRooms);
+    console.log("isLoadingRooms:", isLoadingRooms);
+    console.log("roomsError:", roomsError);
+
+    // ตรวจสอบว่าข้อมูลห้องโหลดเสร็จแล้วหรือยัง
+    if (isLoadingRooms) {
+      toast({
+        title: "กำลังโหลดข้อมูลห้อง",
+        description: "กรุณารอสักครู่...",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (roomsError) {
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดข้อมูลห้องได้",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const roomId =
       user.role === "tenant" ? user.tenant?.room_id : newRepair.room_id;
     const roomNumber =
       user.role === "tenant" ? user.tenant?.room_number : newRepair.room_number;
+
+    console.log("Selected roomId:", roomId);
+    console.log("Selected roomNumber:", roomNumber);
 
     const isTenant = user.role === "tenant";
 
@@ -231,9 +264,20 @@ export default function RepairsPage() {
         return;
       }
     } else {
-      // กรณีเป็น admin หรือ staff ต้องหา room จาก rooms
-      const selectedRoom = rooms.find((r) => r.id === roomId);
+      // กรณีเป็น admin หรือ staff ต้องหา room จาก availableRooms
+      console.log("Checking admin/staff room selection");
+      console.log(
+        "Looking for roomId:",
+        roomId,
+        "in availableRooms:",
+        availableRooms.map((r) => ({ id: r.id, room_number: r.room_number }))
+      );
+
+      const selectedRoom = availableRooms.find((r) => r.id === roomId);
+      console.log("Found selectedRoom:", selectedRoom);
+
       if (!selectedRoom) {
+        console.log("Room not found in availableRooms");
         toast({
           title: "ไม่พบข้อมูลห้องที่เลือก",
           description: "ห้องที่เลือกไม่อยู่ในระบบ หรือถูกลบไปแล้ว",
@@ -243,14 +287,42 @@ export default function RepairsPage() {
       }
     }
 
-    if (
-      !newRepair.description?.trim() ||
-      !newRepair.status ||
-      !newRepair.reported_date
-    ) {
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!newRepair.description?.trim()) {
       toast({
         title: "กรอกข้อมูลไม่ครบ",
-        description: "กรุณากรอกคำอธิบาย, สถานะ และวันที่แจ้งซ่อมให้ครบถ้วน",
+        description: "กรุณากรอกคำอธิบายการแจ้งซ่อม",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newRepair.status) {
+      toast({
+        title: "กรอกข้อมูลไม่ครบ",
+        description: "กรุณาเลือกสถานะการแจ้งซ่อม",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newRepair.reported_date) {
+      toast({
+        title: "กรอกข้อมูลไม่ครบ",
+        description: "กรุณาเลือกวันที่แจ้งซ่อม",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // ตรวจสอบว่า Admin/Staff ได้เลือกห้องหรือไม่
+    if (
+      (user?.role === "admin" || user?.role === "staff") &&
+      !newRepair.room_id
+    ) {
+      toast({
+        title: "กรุณาเลือกห้อง",
+        description: "กรุณาเลือกห้องที่ต้องการแจ้งซ่อม",
         variant: "destructive",
       });
       return;
@@ -416,6 +488,7 @@ export default function RepairsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>{t("repairs.roomNumber") || "ห้อง"}</TableHead>
+              {/* <TableHead className="hidden md:table-cell">Room ID</TableHead> */}
               <TableHead>{t("repairs.reportedDate") || "วันที่แจ้ง"}</TableHead>
               <TableHead>{t("repairs.status") || "สถานะ"}</TableHead>
               <TableHead>{t("repairs.description") || "รายละเอียด"}</TableHead>
@@ -428,6 +501,9 @@ export default function RepairsPage() {
             {filteredRepairs.map((repair) => (
               <TableRow key={repair.id}>
                 <TableCell>{repair.room_number}</TableCell>
+                {/* <TableCell className="hidden md:table-cell font-mono text-sm">
+                  {repair.room_id}
+                </TableCell> */}
                 <TableCell>
                   {format(parseISO(repair.reported_date), "PPP")}
                 </TableCell>
@@ -457,6 +533,18 @@ export default function RepairsPage() {
                         }}
                       >
                         {t("common.viewDetails") || "ดูรายละเอียด"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="hidden"
+                        onClick={() => {
+                          navigator.clipboard.writeText(repair.room_id);
+                          toast({
+                            title: "คัดลอก Room ID แล้ว",
+                            description: `คัดลอก Room ID: ${repair.room_id}`,
+                          });
+                        }}
+                      >
+                        คัดลอก Room ID
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
@@ -521,46 +609,92 @@ export default function RepairsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Debug Info */}
+            <div className="p-2 bg-gray-100 rounded text-xs hidden">
+              <div>User Role: {user?.role}</div>
+              <div>Available Rooms: {availableRooms.length}</div>
+              <div>Loading: {isLoadingRooms ? "Yes" : "No"}</div>
+              <div>Error: {roomsError ? "Yes" : "No"}</div>
+            </div>
+
             {user?.role === "admin" || user?.role === "staff" ? (
-              <Select
-                value={newRepair.room_id}
-                onValueChange={(value) => {
-                  const selectedRoom = availableRooms.find(
-                    (r) => r.id === value
-                  );
-                  setNewRepair({
-                    ...newRepair,
-                    room_id: value,
-                    room_number: selectedRoom?.room_number || "",
-                  });
-                }}
-              >
-                <SelectTrigger id="room-select">
-                  <SelectValue
-                    placeholder={t("repairs.selectRoom") || "เลือกห้อง"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableRooms.length === 0 ? (
-                    <div className="px-3 py-2 text-muted-foreground text-sm">
-                      {t("repairs.noAvailableRoom") || "ไม่มีห้องในระบบ"}
+              <div className="space-y-3">
+                <Select
+                  value={newRepair.room_id}
+                  onValueChange={(value) => {
+                    console.log("Room selected:", value);
+                    const selectedRoom = availableRooms.find(
+                      (r) => r.id === value
+                    );
+                    console.log("Found room:", selectedRoom);
+                    setNewRepair({
+                      ...newRepair,
+                      room_id: value,
+                      room_number: selectedRoom?.room_number || "",
+                    });
+                  }}
+                >
+                  <SelectTrigger id="room-select">
+                    <SelectValue
+                      placeholder={t("repairs.selectRoom") || "เลือกห้อง"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingRooms ? (
+                      <div className="px-3 py-2 text-muted-foreground text-sm">
+                        กำลังโหลดข้อมูลห้อง...
+                      </div>
+                    ) : roomsError ? (
+                      <div className="px-3 py-2 text-red-500 text-sm">
+                        เกิดข้อผิดพลาดในการโหลดข้อมูลห้อง
+                      </div>
+                    ) : availableRooms.length === 0 ? (
+                      <div className="px-3 py-2 text-muted-foreground text-sm">
+                        {t("repairs.noAvailableRoom") || "ไม่มีห้องในระบบ"}
+                      </div>
+                    ) : (
+                      availableRooms.map((room) => (
+                        <SelectItem key={room.id} value={room.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>ห้อง {room.room_number}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {room.current_occupants > 0
+                                ? `(มีผู้พัก ${room.current_occupants} คน)`
+                                : "(ห้องว่าง)"}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {/* แสดงข้อมูลห้องที่เลือก */}
+                {newRepair.room_id && (
+                  <div className="p-3 bg-muted rounded-md hidden">
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="font-medium">ห้องที่เลือก:</span>
+                        <span className="font-semibold">
+                          {newRepair.room_number}
+                        </span>
+                      </div>
+                      <div className="flex justify-between hidden">
+                        <span className="text-muted-foreground">Room ID:</span>
+                        <span className="font-mono text-xs">
+                          {newRepair.room_id}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2 hidden">
+                        ห้องนี้อยู่ใน availableRooms:{" "}
+                        {availableRooms.some((r) => r.id === newRepair.room_id)
+                          ? "✅ ใช่"
+                          : "❌ ไม่ใช่"}
+                      </div>
                     </div>
-                  ) : (
-                    availableRooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>ห้อง {room.room_number}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {room.current_occupants > 0
-                              ? `(มีผู้พัก ${room.current_occupants} คน)`
-                              : "(ห้องว่าง)"}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                  </div>
+                )}
+              </div>
             ) : user?.role === "tenant" ? (
               <div className="px-4 py-2 rounded border text-muted-foreground">
                 ห้องพักของคุณ:{" "}
@@ -627,7 +761,9 @@ export default function RepairsPage() {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={handleAddRepair}>{t("repairs.add")}</Button>
+            <Button onClick={handleAddRepair} disabled={isLoadingRooms}>
+              {isLoadingRooms ? "กำลังโหลด..." : t("repairs.add")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -642,23 +778,16 @@ export default function RepairsPage() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <label htmlFor="edit_room_id">{t("repairs.room")}</label>
-                <Select
-                  value={editingRepair.room_id}
-                  onValueChange={(value) =>
-                    setEditingRepair({ ...editingRepair, room_id: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกห้อง" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        {room.room_number}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-orange-800">
+                      ห้อง {editingRepair.room_number}
+                    </span>
+                    <span className="text-xs text-orange-600 hidden">
+                      Room ID: {editingRepair.room_id}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className="space-y-2">
                 <label htmlFor="edit_description">

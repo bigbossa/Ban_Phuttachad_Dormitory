@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DollarSign, Wrench } from "lucide-react";
+import { DollarSign, Wrench, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 interface ReportItem {
@@ -28,6 +28,12 @@ const availableReports: ReportItem[] = [
     titleKey: "reports.revenueTitle",
     icon: DollarSign,
     descriptionKey: "reports.revenueDesc",
+  },
+  {
+    id: "revenueYearly",
+    titleKey: "reports.revenueYearlyTitle",
+    icon: TrendingUp,
+    descriptionKey: "reports.revenueYearlyDesc",
   },
   {
     id: "repairs",

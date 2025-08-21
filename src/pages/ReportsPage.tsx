@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { ReportSelector } from "@/components/reports/ReportSelector";
 import { RevenueChart } from "@/components/reports/charts/RevenueChart";
+import { RevenueYearlyChart } from "@/components/reports/charts/RevenueYearlyChart";
 import { PieCharts } from "@/components/reports/charts/PieCharts";
 import { useToast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
@@ -19,6 +20,8 @@ const ReportsPage = () => {
     switch (selectedReport) {
       case "revenue":
         return t("reports.revenueTitle");
+      case "revenueYearly":
+        return t("reports.revenueYearlyTitle");
       case "rooms":
         return t("reports.roomTypeTitle");
       default:
@@ -114,6 +117,8 @@ const ReportsPage = () => {
     switch (selectedReport) {
       case "revenue":
         return <RevenueChart />;
+      case "revenueYearly":
+        return <RevenueYearlyChart />;
       case "repairs":
         return <PieCharts selectedReport={selectedReport} />;
       default:
