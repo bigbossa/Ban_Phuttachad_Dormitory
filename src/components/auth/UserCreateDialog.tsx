@@ -193,9 +193,9 @@ export const UserCreateDialog = ({
           };
         })
       );
+      // กรองเฉพาะห้องที่ไม่มีคนเช่าเลย (current_occupants === 0) และสถานะเป็น vacant
       return roomsWithOccupancy.filter((room) => {
-        const cap = Math.max(room.capacity ?? 2, 2);
-        return room.status === "vacant" || room.current_occupants < cap;
+        return room.status === "vacant" && room.current_occupants === 0;
       });
     },
     enabled: open,
@@ -224,6 +224,25 @@ export const UserCreateDialog = ({
       toast.error("คุณไม่มีสิทธิ์ในการสร้างบัญชีผู้ใช้ใหม่");
       return;
     }
+
+    // ตรวจสอบว่าห้องที่เลือกยังคงว่างอยู่จริง
+    const { data: currentOccupancy, error: occupancyCheckError } =
+      await supabase
+        .from("occupancy")
+        .select("tenant_id")
+        .eq("room_id", formData.roomId)
+        .eq("is_current", true);
+
+    if (occupancyCheckError) {
+      toast.error("ไม่สามารถตรวจสอบสถานะห้องได้");
+      return;
+    }
+
+    if (currentOccupancy && currentOccupancy.length > 0) {
+      toast.error("ห้องที่เลือกมีคนเช่าแล้ว กรุณาเลือกห้องอื่น");
+      return;
+    }
+
     setLoading(true);
     try {
       // 1. สร้าง user
@@ -298,7 +317,18 @@ export const UserCreateDialog = ({
         return;
       }
 
-      // 4. เพิ่ม profile
+      // 4. อัปเดตสถานะห้องให้เป็น occupied
+      const { error: roomUpdateError } = await supabase
+        .from("rooms")
+        .update({ status: "occupied" })
+        .eq("id", formData.roomId);
+      if (roomUpdateError) {
+        toast.error("สร้างผู้ใช้สำเร็จ แต่ไม่สามารถอัปเดตสถานะห้องได้");
+        setLoading(false);
+        return;
+      }
+
+      // 5. เพิ่ม profile
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: userId,
         tenant_id: tenantData.id,
@@ -312,7 +342,7 @@ export const UserCreateDialog = ({
         return;
       }
 
-      // 5. สร้างและอัปโหลด PDF ไปยัง API insertimage (base64)
+      // 6. สร้างและอัปโหลด PDF ไปยัง API insertimage (base64)
       if (!contractRef.current) {
         toast.error("ไม่พบ ref สัญญา");
         setLoading(false);
@@ -392,6 +422,9 @@ export const UserCreateDialog = ({
           queryClient.invalidateQueries({ queryKey: ["tenants"] });
           queryClient.invalidateQueries({ queryKey: ["rooms"] });
           queryClient.invalidateQueries({ queryKey: ["occupancy"] });
+          queryClient.invalidateQueries({
+            queryKey: ["available-rooms-with-capacity"],
+          });
           onSuccess?.();
         } else {
           toast.error(
@@ -667,7 +700,7 @@ export const UserCreateDialog = ({
                 name="roomId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>เลือกห้อง</FormLabel>
+                    <FormLabel>เลือกห้องว่าง (ไม่มีคนเช่า)</FormLabel>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -676,38 +709,31 @@ export const UserCreateDialog = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="เลือกห้องว่าง" />
+                          <SelectValue placeholder="เลือกห้องว่างที่ไม่มีคนเช่า" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
-                        {availableRooms.filter(
-                          (room) => room.current_occupants < 2
-                        ).length === 0 ? (
+                        {availableRooms.length === 0 ? (
                           <div className="px-3 py-2 text-muted-foreground text-sm">
-                            ไม่มีห้องว่าง
+                            ไม่มีห้องว่างที่ไม่มีคนเช่า
                           </div>
                         ) : (
-                          availableRooms
-                            .filter((room) => room.current_occupants < 2)
-                            .map((room) => (
-                              <SelectItem key={room.id} value={room.id}>
-                                <div className="flex items-center justify-between w-full">
-                                  <span>
-                                    ห้อง {room.room_number}{" "}
-                                    {/* - {room.room_type} (ชั้น {room.floor}) */}
+                          availableRooms.map((room) => (
+                            <SelectItem key={room.id} value={room.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>
+                                  ห้อง {room.room_number} - {room.room_type}{" "}
+                                  (ชั้น {room.floor})
+                                </span>
+                                <div className="flex items-center gap-2 ml-2">
+                                  <Badge variant="secondary">ว่าง</Badge>
+                                  <span className="text-sm text-muted-foreground">
+                                    {room.price.toLocaleString()} บาท/เดือน
                                   </span>
-                                  <div className="flex items-center gap-2 ml-2">
-                                    <Badge variant="secondary">
-                                      {room.current_occupants}/
-                                      {Math.max(room.capacity ?? 2, 2)} คน
-                                    </Badge>
-                                    {/* <span className="text-sm text-muted-foreground">
-                                      {room.price.toLocaleString()} บาท
-                                    </span> */}
-                                  </div>
                                 </div>
-                              </SelectItem>
-                            ))
+                              </div>
+                            </SelectItem>
+                          ))
                         )}
                       </SelectContent>
                     </Select>
