@@ -464,11 +464,15 @@ const translations: Record<Language, Record<string, string>> = {
     "tenants.loading": "Loading data...",
     "tenants.viewDetails": "View Details",
     "announcements.important": "Important",
+    "rooms.editDescription": "Edit room description",
+    "rooms.editDescriptionPlaceholder": "Enter room description here",
     // ...existing code...
   },
 
   //TH
   th: {
+    "rooms.editDescription": "แก้ไขรายละเอียดห้อง",
+    "rooms.editDescriptionPlaceholder": "กรอกรายละเอียดห้องที่นี่",
     "announcements.important": "สำคัญ",
     "repairs.descriptionPlaceholder": "กรอกรายละเอียดการซ่อมแซมที่นี่",
     "rooms.addDesc": "เพิ่มห้องใหม่ในหอพัก",
