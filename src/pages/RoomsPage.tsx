@@ -366,7 +366,7 @@ export default function RoomsPage() {
       {/* Filters */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <Input
-          placeholder={t("Search by room number")}
+          placeholder={t("search.roomNumber")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -468,7 +468,7 @@ export default function RoomsPage() {
                             {room.status === "vacant" && (
                               <>
                                 <DropdownMenuLabel>
-                                  Change Status
+                                {t("Process_status")}
                                 </DropdownMenuLabel>
                                 {/* <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "occupied")}>
                                     Set as Occupied
@@ -481,7 +481,7 @@ export default function RoomsPage() {
                                     )
                                   }
                                 >
-                                  Set as Maintenance
+                                  {t("maintenance")}
                                 </DropdownMenuItem>
                               </>
                             )}

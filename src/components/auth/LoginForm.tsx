@@ -10,6 +10,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 const loginSchema = z.object({
   email: z.string().email("กรุณาใส่อีเมลที่ถูกต้อง"),
@@ -54,9 +55,9 @@ export const LoginForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>อีเมล</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="อีเมลของคุณ" {...field} />
+                <Input type="email" placeholder="Your email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -68,12 +69,12 @@ export const LoginForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>รหัสผ่าน</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="รหัสผ่านของคุณ"
+                    placeholder="Your password"
                     {...field}
                   />
                   <button
@@ -91,7 +92,7 @@ export const LoginForm = () => {
         />
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+          {loading ? "Login........" : "Login"}
         </Button>
       </form>
     </Form>

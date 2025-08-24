@@ -37,15 +37,15 @@ export default function LoginPage() {
             to="/"
             className="text-primary hover:underline text-sm mt-2 inline-block"
           >
-            &larr; กลับสู่หน้าหลัก
+            &larr; {t("login.back")}
           </Link>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>ระบบจัดการหอพัก</CardTitle>
+            <CardTitle>{t("login.title")}</CardTitle>
             <CardDescription>
-              เข้าสู่ระบบด้วยบัญชีที่ผู้ดูแลระบบสร้างให้
+            {t("login.subtitle")}
             </CardDescription>
           </CardHeader>
           

@@ -121,31 +121,92 @@ export default function RepairsPage() {
     isLoading: isLoadingRooms,
     error: roomsError,
   } = useQuery({
-    queryKey: ["available-rooms-with-capacity"],
+    queryKey: ["available-rooms-with-capacity", user?.role],
     queryFn: async () => {
+      // Get all rooms regardless of status for admin users
       const { data: rooms, error: roomsError } = await supabase
         .from("rooms")
         .select("*")
         .order("room_number");
       if (roomsError) throw roomsError;
 
+      console.log(
+        `Fetched ${rooms?.length || 0} rooms from database:`,
+        rooms?.map((r) => `${r.room_number}(${r.status})`)
+      );
+      console.log("Room status values found:", [
+        ...new Set(rooms?.map((r) => r.status) || []),
+      ]);
+      console.log("Room capacity values found:", [
+        ...new Set(rooms?.map((r) => r.capacity) || []),
+      ]);
+
       const roomsWithOccupancy: RoomWithOccupancy[] = await Promise.all(
         rooms.map(async (room) => {
-          const { data: occupancyData } = await supabase
-            .from("occupancy")
-            .select("tenant_id")
-            .eq("room_id", room.id)
-            .eq("is_current", true);
-          return {
-            ...room,
-            current_occupants: occupancyData?.length || 0,
-          };
+          try {
+            const { data: occupancyData, error: occupancyError } =
+              await supabase
+                .from("occupancy")
+                .select("tenant_id")
+                .eq("room_id", room.id)
+                .eq("is_current", true);
+
+            if (occupancyError) {
+              console.error(
+                `Error fetching occupancy for room ${room.room_number}:`,
+                occupancyError
+              );
+            }
+
+            const roomWithOccupancy = {
+              ...room,
+              current_occupants: occupancyData?.length || 0,
+            };
+
+            console.log(`Processed room ${room.room_number}:`, {
+              id: room.id,
+              status: room.status,
+              capacity: room.capacity,
+              current_occupants: roomWithOccupancy.current_occupants,
+            });
+
+            return roomWithOccupancy;
+          } catch (error) {
+            console.error(`Error processing room ${room.room_number}:`, error);
+            return {
+              ...room,
+              current_occupants: 0,
+            };
+          }
         })
       );
-      return roomsWithOccupancy.filter((room) => {
-        const cap = Math.max(room.capacity ?? 2, 2);
-        return room.status === "vacant" || room.current_occupants < cap;
-      });
+      // For admin/staff users, show all rooms. For tenants, only show available rooms
+      let finalRooms;
+      if (user?.role === "admin" || user?.role === "staff") {
+        finalRooms = roomsWithOccupancy;
+        console.log(`Admin/Staff: Showing all ${finalRooms.length} rooms`);
+      } else {
+        // For tenants, filter to only show available rooms
+        finalRooms = roomsWithOccupancy.filter((room) => {
+          const cap = Math.max(room.capacity ?? 2, 2);
+          const isAvailable =
+            room.status === "vacant" || room.current_occupants < cap;
+          console.log(
+            `Room ${room.room_number}: status=${room.status}, occupants=${room.current_occupants}, capacity=${room.capacity}, cap=${cap}, isAvailable=${isAvailable}`
+          );
+          return isAvailable;
+        });
+        console.log(`Tenant: Filtered to ${finalRooms.length} available rooms`);
+      }
+
+      console.log(
+        "Final rooms to display:",
+        finalRooms.map(
+          (r) =>
+            `${r.room_number}(${r.status}/${r.current_occupants}/${r.capacity})`
+        )
+      );
+      return finalRooms;
     },
   });
   // โหลดข้อมูลจาก supabase
@@ -609,13 +670,31 @@ export default function RepairsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {/* Debug Info */}
-            <div className="p-2 bg-gray-100 rounded text-xs hidden">
-              <div>User Role: {user?.role}</div>
-              <div>Available Rooms: {availableRooms.length}</div>
-              <div>Loading: {isLoadingRooms ? "Yes" : "No"}</div>
-              <div>Error: {roomsError ? "Yes" : "No"}</div>
-            </div>
+            {/* Debug Info - Visible for admin users */}
+            {(user?.role === "admin" || user?.role === "staff") && (
+              <div className="p-2 bg-blue-50 rounded text-xs border border-blue-200 hidden">
+                <div className="font-medium text-blue-800 mb-1">
+                  ข้อมูลการแก้ไขปัญหา:
+                </div>
+                <div>User Role: {user?.role}</div>
+                <div>Available Rooms: {availableRooms.length}</div>
+                <div>Loading: {isLoadingRooms ? "Yes" : "No"}</div>
+                <div>Error: {roomsError ? "Yes" : "No"}</div>
+                <div className="mt-1 text-blue-600">
+                  ห้องทั้งหมด:{" "}
+                  {availableRooms.map((r) => r.room_number).join(", ")}
+                </div>
+                <div className="mt-1 text-blue-600">
+                  ข้อมูลห้อง:{" "}
+                  {availableRooms
+                    .map(
+                      (r) =>
+                        `${r.room_number}(${r.status}/${r.current_occupants}/${r.capacity})`
+                    )
+                    .join(", ")}
+                </div>
+              </div>
+            )}
 
             {user?.role === "admin" || user?.role === "staff" ? (
               <div className="space-y-3">
@@ -656,12 +735,39 @@ export default function RepairsPage() {
                       availableRooms.map((room) => (
                         <SelectItem key={room.id} value={room.id}>
                           <div className="flex items-center justify-between w-full">
-                            <span>ห้อง {room.room_number}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {room.current_occupants > 0
-                                ? `(มีผู้พัก ${room.current_occupants} คน)`
-                                : "(ห้องว่าง)"}
+                            <span className="flex items-center gap-2">
+                              ห้อง {room.room_number}
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full hidden ${
+                                  room.status === "vacant"
+                                    ? "bg-green-100 text-green-800"
+                                    : room.status === "occupied"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {room.status === "vacant"
+                                  ? "ว่าง"
+                                  : room.status === "occupied"
+                                  ? "มีคนพัก"
+                                  : room.status === "maintenance"
+                                  ? "ซ่อมแซม"
+                                  : room.status}
+                              </span>
                             </span>
+                            <div className="flex flex-col items-end text-xs text-muted-foreground hidden">
+                              <span>
+                                {room.current_occupants > 0
+                                  ? `${room.current_occupants}/${
+                                      room.capacity || 2
+                                    } คน`
+                                  : "ไม่มีผู้พัก"}
+                              </span>
+                              <span className="text-xs opacity-70">
+                                ชั้น {room.floor || "N/A"} | ความจุ:{" "}
+                                {room.capacity || 2}
+                              </span>
+                            </div>
                           </div>
                         </SelectItem>
                       ))

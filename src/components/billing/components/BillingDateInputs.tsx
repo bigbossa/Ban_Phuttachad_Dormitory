@@ -23,6 +23,16 @@ export default function BillingDateInputs() {
     return `${year}-${month}-${day}`;
   };
 
+  // แปลงวันที่เป็นรูปแบบวันเดือนปีแบบไทย
+  const formatThaiDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("th-TH", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   const { t } = useLanguage();
   const [billingDate] = useState(getCurrentDate());
   const [dueDate] = useState(getNextMonthDueDate());
@@ -33,26 +43,18 @@ export default function BillingDateInputs() {
         <Label htmlFor="billingDate" className="dark:text-foreground">
           {t("billing.billingDate")}
         </Label>
-        <Input
-          id="billingDate"
-          type="date"
-          value={billingDate}
-          readOnly
-          className="cursor-not-allowed bg-gray-100 dark:bg-background dark:text-foreground dark:border-gray-600"
-        />
+        <div className="px-3 py-2 border border-input rounded-md bg-gray-100 dark:bg-background dark:text-foreground dark:border-gray-600 min-h-[40px] flex items-center">
+          {formatThaiDate(billingDate)}
+        </div>
       </div>
 
       <div className="space-y-2 mt-4">
         <Label htmlFor="dueDate" className="dark:text-foreground">
           {t("billing.dueDate")}
         </Label>
-        <Input
-          id="dueDate"
-          type="date"
-          value={dueDate}
-          readOnly
-          className="cursor-not-allowed bg-gray-100 dark:bg-background dark:text-foreground dark:border-gray-600"
-        />
+        <div className="px-3 py-2 border border-input rounded-md bg-gray-100 dark:bg-background dark:text-foreground dark:border-gray-600 min-h-[40px] flex items-center">
+          {formatThaiDate(dueDate)}
+        </div>
       </div>
     </>
   );
