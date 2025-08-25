@@ -12,18 +12,20 @@ import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/providers/LanguageProvider";
 
-const loginSchema = z.object({
-  email: z.string().email("กรุณาใส่อีเมลที่ถูกต้อง"),
-  password: z.string().min(1, "กรุณาใส่รหัสผ่าน"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const loginSchema = z.object({
+    email: z.string().email(t("login.emailInvalid")),
+    password: z.string().min(1, t("login.passwordInvalid")),
+  });
+
+  type LoginFormData = z.infer<typeof loginSchema>;
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -37,11 +39,11 @@ export const LoginForm = () => {
     setLoading(true);
     try {
       await login(data.email, data.password);
-      toast.success("เข้าสู่ระบบสำเร็จ!");
+      toast.success(t("login.success"));
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Login failed:", error);
-      toast.error(error.message || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      toast.error(error.message || (t("login.notSuccess")));
     } finally {
       setLoading(false);
     }
@@ -55,9 +57,9 @@ export const LoginForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("login.email")}</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Your email" {...field} />
+                <Input type="email" placeholder={t("login.emailPlaceholder")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -69,12 +71,12 @@ export const LoginForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("login.password")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Your password"
+                    placeholder={t("login.passwordPlaceholder")}
                     {...field}
                   />
                   <button
@@ -92,7 +94,7 @@ export const LoginForm = () => {
         />
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Login........" : "Login"}
+          {loading ? t("login.loggingIn") : t("login.login")}
         </Button>
       </form>
     </Form>
