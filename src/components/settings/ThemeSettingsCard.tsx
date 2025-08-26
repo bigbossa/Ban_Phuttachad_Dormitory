@@ -59,7 +59,7 @@ export function ThemeSettingsCard() {
           </RadioGroup>
         </div>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t hidden">
           <div className="grid grid-cols-2 gap-2">
             <Button 
               variant="outline" 

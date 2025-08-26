@@ -66,7 +66,7 @@ export function SystemConfigSection() {
             className="mt-1"
           />
         </div>
-        <div>
+        <div className="hidden">
           <Label htmlFor="late-fee">{t("system.lateFee")}</Label>
           <Input
             id="late-fee"

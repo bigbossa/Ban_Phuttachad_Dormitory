@@ -12,6 +12,7 @@ type Tenant = Database["public"]["Tables"]["tenants"]["Row"] & {
     room_type: string;
     floor: number;
   } | null;
+  check_out_date?: string | null;
 };
 type TenantInsert = Database["public"]["Tables"]["tenants"]["Insert"] & {
   id?: string;
@@ -45,8 +46,7 @@ export const useTenants = () => {
       // First get all tenants
       const { data: tenantsData, error: tenantsError } = await supabase
         .from("tenants")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
 
       if (tenantsError) {
         console.error("Error fetching tenants:", tenantsError);
@@ -58,11 +58,14 @@ export const useTenants = () => {
       // Then get current occupancy with room details for each tenant
       const tenantsWithRooms = await Promise.all(
         (tenantsData || []).map(async (tenant) => {
-          const { data: occupancyData } = await supabase
+          // ดึงข้อมูล occupancy ทั้งหมดของ tenant นี้
+          const { data: allOccupancyData } = await supabase
             .from("occupancy")
             .select(
               `
               room_id,
+              check_out_date,
+              is_current,
               rooms!occupancy_room_id_fkey(
                 id,
                 room_number,
@@ -72,27 +75,64 @@ export const useTenants = () => {
             `
             )
             .eq("tenant_id", tenant.id)
-            .eq("is_current", true)
-            .maybeSingle();
+            .order("created_at", { ascending: false });
 
-          const current_room = occupancyData?.rooms
+          // หาห้องปัจจุบัน (is_current: true) หรือห้องล่าสุด
+          const currentOccupancy = allOccupancyData?.find(
+            (occ) => occ.is_current
+          );
+          const current_room = currentOccupancy?.rooms
             ? {
-                id: occupancyData.rooms.id,
-                room_number: occupancyData.rooms.room_number,
-                room_type: occupancyData.rooms.room_type,
-                floor: occupancyData.rooms.floor,
+                id: currentOccupancy.rooms.id,
+                room_number: currentOccupancy.rooms.room_number,
+                room_type: currentOccupancy.rooms.room_type,
+                floor: currentOccupancy.rooms.floor,
               }
             : null;
+
+          // หา check_out_date จาก occupancy ที่ไม่ใช่ปัจจุบัน (is_current: false)
+          let check_out_date = null;
+          const checkOutOccupancy = allOccupancyData?.find(
+            (occ) => !occ.is_current && occ.check_out_date
+          );
+          if (checkOutOccupancy) {
+            check_out_date = checkOutOccupancy.check_out_date;
+          }
 
           return {
             ...tenant,
             current_room,
+            check_out_date,
           };
         })
       );
 
       console.log("Tenants with room info:", tenantsWithRooms);
-      return tenantsWithRooms;
+
+      // เรียงลำดับตาม check_out_date (ล่าสุดขึ้นก่อน) และ created_at (ล่าสุดขึ้นก่อน)
+      const sortedTenants = tenantsWithRooms.sort((a, b) => {
+        // ถ้ามี check_out_date ทั้งคู่ ให้เรียงตาม check_out_date
+        if (a.check_out_date && b.check_out_date) {
+          return (
+            new Date(b.check_out_date).getTime() -
+            new Date(a.check_out_date).getTime()
+          );
+        }
+        // ถ้ามีแค่ a มี check_out_date ให้ a ขึ้นก่อน
+        if (a.check_out_date && !b.check_out_date) {
+          return -1;
+        }
+        // ถ้ามีแค่ b มี check_out_date ให้ b ขึ้นก่อน
+        if (!a.check_out_date && b.check_out_date) {
+          return 1;
+        }
+        // ถ้าไม่มี check_out_date ทั้งคู่ ให้เรียงตาม created_at
+        return (
+          new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
+        );
+      });
+
+      return sortedTenants;
     },
     enabled: !!user,
   });

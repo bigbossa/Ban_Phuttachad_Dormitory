@@ -29,6 +29,7 @@ type Tenant = Database["public"]["Tables"]["tenants"]["Row"] & {
     room_type: string;
     floor: number;
   } | null;
+  check_out_date?: string | null;
 };
 
 interface TenantDetailsDialogProps {
@@ -301,6 +302,14 @@ export default function TenantDetailsDialog({
                 t("language.th") === "ไทย" ? "th-TH" : "en-US"
               )}
             </p>
+            {tenant.check_out_date && (
+              <p>
+                {t("tenants.checkOutDate")}:{" "}
+                {new Date(tenant.check_out_date).toLocaleDateString(
+                  t("language.th") === "ไทย" ? "th-TH" : "en-US"
+                )}
+              </p>
+            )}
             {tenant.updated_at && (
               <p>
                 {t("tenants.lastUpdated")}:{" "}

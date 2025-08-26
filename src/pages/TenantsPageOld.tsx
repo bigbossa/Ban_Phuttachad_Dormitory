@@ -275,6 +275,7 @@ const TenantsPageOld = ({ children }) => {
                     <TableHead>{t("tenants.phone")}</TableHead>
                     <TableHead>{t("tenants.address")}</TableHead>
                     <TableHead>{t("tenants.createdAt")}</TableHead>
+                    <TableHead>{t("tenants.checkOutDate")}</TableHead>
                     <TableHead className="w-[100px]">
                       {t("common.actions")}
                     </TableHead>
@@ -283,7 +284,7 @@ const TenantsPageOld = ({ children }) => {
                 <TableBody>
                   {filteredTenants.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <Users className="h-8 w-8 text-muted-foreground" />
                           <p className="text-muted-foreground">
@@ -330,6 +331,13 @@ const TenantsPageOld = ({ children }) => {
                             {new Date(tenant.created_at!).toLocaleDateString(
                               "th-TH"
                             )}
+                          </TableCell>
+                          <TableCell>
+                            {tenant.check_out_date
+                              ? new Date(
+                                  tenant.check_out_date
+                                ).toLocaleDateString("th-TH")
+                              : "-"}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
