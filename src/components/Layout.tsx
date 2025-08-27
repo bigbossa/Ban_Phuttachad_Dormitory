@@ -89,7 +89,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="ml-4 flex items-center md:ml-6 space-x-3">
               <LanguageSwitcher />
               <ThemeSwitcher />
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="hidden">
                 <Bell className="h-[1.2rem] w-[1.2rem]" />
               </Button>
 

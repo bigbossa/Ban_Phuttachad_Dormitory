@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { useReportsData } from "../hooks/useReportsData";
 
+
 // Create custom tooltip component
 const CustomTooltip = ({
   active,

@@ -273,7 +273,7 @@ export default function BillingTable({
                               setShowDeleteDialog(true);
                             }}
                           >
-                            ลบบิล
+                            {t("billing.delete")}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>

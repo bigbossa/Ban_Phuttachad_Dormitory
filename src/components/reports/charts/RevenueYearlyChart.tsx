@@ -20,6 +20,7 @@ import {
   ComposedChart,
 } from "recharts";
 import { useReportsData } from "../hooks/useReportsData";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 // Create custom tooltip component
 const CustomTooltip = ({
@@ -51,16 +52,16 @@ const formatCurrency = (amount: number) => {
 export const RevenueYearlyChart = () => {
   const { revenueYearlyData, revenueSummaryData, isLoading } =
     useReportsData("revenueYearly");
-
+  const { t } = useLanguage();
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>รายได้รายปี</CardTitle>
-          <CardDescription>ข้อมูลรายได้รายปีของหอพัก</CardDescription>
+          <CardTitle>{t("reports.revenueYearlyTitle")}</CardTitle>
+          <CardDescription>{t("reports.revenueYearlyDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="h-[500px] flex items-center justify-center">
-          <div className="text-muted-foreground">กำลังโหลด...</div>
+          <div className="text-muted-foreground">{t("loading")}</div>
         </CardContent>
       </Card>
     );
@@ -69,8 +70,8 @@ export const RevenueYearlyChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>รายได้รายปี</CardTitle>
-        <CardDescription>ข้อมูลรายได้รายปีของหอพัก</CardDescription>
+        <CardTitle>{t("reports.revenueYearlyTitle")}</CardTitle>
+        <CardDescription>{t("reports.revenueYearlyDesc")}</CardDescription>
         {revenueSummaryData && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -78,7 +79,7 @@ export const RevenueYearlyChart = () => {
                 {formatCurrency(revenueSummaryData.totalRevenue).split(".")[0]}
               </div>
               <div className="text-sm text-green-600 dark:text-green-400">
-                รายได้ทั้งหมด
+                {t("dashboard.totalRevenue")}
               </div>
             </div>
             <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -90,7 +91,7 @@ export const RevenueYearlyChart = () => {
                 }
               </div>
               <div className="text-sm text-blue-600 dark:text-blue-400">
-                รายได้เฉลี่ย/ปี
+                {t("reports.averageYearlyRevenue")}
               </div>
             </div>
             <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
@@ -98,7 +99,7 @@ export const RevenueYearlyChart = () => {
                 {revenueSummaryData.bestYear}
               </div>
               <div className="text-sm text-purple-600 dark:text-purple-400">
-                ปีที่ดีที่สุด
+                {t("reports.bestYear")}
               </div>
             </div>
             <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
@@ -106,7 +107,7 @@ export const RevenueYearlyChart = () => {
                 {revenueSummaryData.totalYears}
               </div>
               <div className="text-sm text-orange-600 dark:text-orange-400">
-                จำนวนปี
+                {t("reports.totalYears")}
               </div>
             </div>
           </div>
@@ -123,7 +124,7 @@ export const RevenueYearlyChart = () => {
                 )}
               </div>
               <div className="text-sm text-yellow-600 dark:text-yellow-400">
-                การเปลี่ยนแปลงจากปีก่อน
+                {t("reports.changeFromLastYear")}
               </div>
             </div>
             <div className="text-center p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
@@ -136,7 +137,7 @@ export const RevenueYearlyChart = () => {
                 %
               </div>
               <div className="text-sm text-indigo-600 dark:text-indigo-400">
-                เปรียบเทียบกับค่าเฉลี่ย
+                {t("reports.compareWithAverage")}
               </div>
             </div>
             <div className="text-center p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
@@ -144,7 +145,7 @@ export const RevenueYearlyChart = () => {
                 {revenueYearlyData[revenueYearlyData.length - 1].year}
               </div>
               <div className="text-sm text-pink-600 dark:text-pink-400">
-                ปีล่าสุด
+                {t("reports.latestYear")}
               </div>
             </div>
           </div>
@@ -154,7 +155,7 @@ export const RevenueYearlyChart = () => {
         <ChartContainer
           config={{
             revenue: {
-              label: "รายได้",
+              label: t("dashboard.Revenue"),
               theme: {
                 light: "#10b981",
                 dark: "#34d399",
@@ -182,7 +183,7 @@ export const RevenueYearlyChart = () => {
               <Legend />
               <Bar
                 dataKey="revenue"
-                name="รายได้"
+                name={t("dashboard.Revenue")}
                 fill="var(--color-revenue)"
               />
               {revenueSummaryData && (
@@ -190,7 +191,7 @@ export const RevenueYearlyChart = () => {
                   dataKey={(data) =>
                     data.year === revenueSummaryData.bestYear ? data.revenue : 0
                   }
-                  name="ปีที่ดีที่สุด"
+                  name={t("reports.bestYear")}
                   fill="#8b5cf6"
                   opacity={0.8}
                 />
@@ -198,7 +199,7 @@ export const RevenueYearlyChart = () => {
               <Line
                 type="monotone"
                 dataKey="revenue"
-                name="แนวโน้มรายได้"
+                name={t("reports.revenueTrend")}
                 stroke="#ef4444"
                 strokeWidth={3}
                 dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
@@ -211,13 +212,13 @@ export const RevenueYearlyChart = () => {
         {revenueSummaryData && (
           <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <h3 className="text-lg font-semibold mb-3 text-center">
-              สรุปข้อมูลรายได้รายปี
+              {t("reports.summaryTitle")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    รายได้รวมทั้งหมด:
+                    {t("reports.totalRevenue")}:
                   </span>
                   <span className="font-semibold text-green-600 dark:text-green-400">
                     {formatCurrency(revenueSummaryData.totalRevenue)}
@@ -225,7 +226,7 @@ export const RevenueYearlyChart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    รายได้เฉลี่ยต่อปี:
+                    {t("reports.averageYearlyRevenue")}:
                   </span>
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
                     {formatCurrency(revenueSummaryData.averageYearlyRevenue)}
@@ -233,17 +234,17 @@ export const RevenueYearlyChart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    จำนวนปีที่มีข้อมูล:
+                    {t("reports.totalYearsWithData")}:
                   </span>
                   <span className="font-semibold text-orange-600 dark:text-orange-400">
-                    {revenueSummaryData.totalYears} ปี
+                    {revenueSummaryData.totalYears} {t("reports.yearUnit")}
                   </span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    ปีที่มีรายได้สูงสุด:
+                    {t("reports.bestYear")}:
                   </span>
                   <span className="font-semibold text-purple-600 dark:text-purple-400">
                     {revenueSummaryData.bestYear}
@@ -251,7 +252,7 @@ export const RevenueYearlyChart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    รายได้ในปี {revenueSummaryData.bestYear}:
+                    {t("reports.bestYearRevenue", { year: revenueSummaryData.bestYear })}:
                   </span>
                   <span className="font-semibold text-purple-600 dark:text-purple-400">
                     {formatCurrency(revenueSummaryData.bestYearRevenue)}
@@ -259,7 +260,7 @@ export const RevenueYearlyChart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    เปอร์เซ็นต์ของรายได้รวม:
+                    {t("reports.percentOfTotalRevenue")}:
                   </span>
                   <span className="font-semibold text-purple-600 dark:text-purple-400">
                     {Math.round(
@@ -276,13 +277,13 @@ export const RevenueYearlyChart = () => {
             {/* แสดงข้อมูลเปรียบเทียบรายปี */}
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <h4 className="text-md font-medium mb-3 text-center">
-                ข้อมูลเปรียบเทียบรายปี
+                {t("reports.yearlyComparison")}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">
-                      การเปลี่ยนแปลงจากปีก่อน:
+                      {t("reports.changeFromLastYear")}:
                     </span>
                     <span className="font-semibold text-yellow-600 dark:text-yellow-400">
                       {revenueYearlyData.length > 1
@@ -292,12 +293,12 @@ export const RevenueYearlyChart = () => {
                               revenueYearlyData[revenueYearlyData.length - 2]
                                 .revenue
                           )
-                        : "ไม่มีข้อมูล"}
+                        : t("common.noData")}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">
-                      เปรียบเทียบกับค่าเฉลี่ย:
+                      {t("reports.compareWithAverage")}:
                     </span>
                     <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                       {revenueYearlyData.length > 0
@@ -315,17 +316,17 @@ export const RevenueYearlyChart = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">
-                      ปีล่าสุด:
+                      {t("reports.latestYear")}:
                     </span>
                     <span className="font-semibold text-pink-600 dark:text-pink-400">
                       {revenueYearlyData.length > 0
                         ? revenueYearlyData[revenueYearlyData.length - 1].year
-                        : "ไม่มีข้อมูล"}
+                        : t("common.noData")}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">
-                      แนวโน้ม:
+                      {t("reports.trend")}:
                     </span>
                     <span
                       className={`font-semibold ${
@@ -343,9 +344,9 @@ export const RevenueYearlyChart = () => {
                             .revenue >
                           revenueYearlyData[revenueYearlyData.length - 2]
                             .revenue
-                          ? "เพิ่มขึ้น"
-                          : "ลดลง"
-                        : "ไม่มีข้อมูล"}
+                          ? t("dashboard.increase")
+                          : t("dashboard.decrease")
+                        : t("common.noData")}
                     </span>
                   </div>
                 </div>
