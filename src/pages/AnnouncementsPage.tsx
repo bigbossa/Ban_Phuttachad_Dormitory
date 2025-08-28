@@ -53,7 +53,11 @@ type Announcement = {
   title: string;
   content: string;
   publish_date: string; // yyyy-MM-dd
-  important: boolean;
+  important: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  expiry_date?: string | null;
+  action?: string | null;
 };
 
 const isWithinLast7Days = (dateStr: string) => {
@@ -69,7 +73,9 @@ export default function AnnouncementsPage() {
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newAnnouncement, setNewAnnouncement] = useState<Omit<Announcement, "id">>({
+  const [newAnnouncement, setNewAnnouncement] = useState<
+    Omit<Announcement, "id">
+  >({
     title: "",
     content: "",
     publish_date: new Date().toISOString().split("T")[0],
@@ -80,71 +86,132 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
-      const { data, error } = await supabase
-        .from("announcements")
-        .select("*")
-        .order("publish_date", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("announcements")
+          .select(
+            `
+            id,
+            title,
+            content,
+            publish_date,
+            important,
+            created_at,
+            updated_at,
+            expiry_date,
+            action
+          `
+          )
+          .order("publish_date", { ascending: false })
+          .limit(10); // ดึงมาเยอะหน่อย แล้วค่อยกรอง
 
-      if (!error && data) {
-        const filtered = data.filter((a) => isWithinLast7Days(a.publish_date));
-        setAnnouncements(filtered);
+        if (error) {
+          console.error("Error fetching announcements:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch announcements",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data) {
+          // กรองเฉพาะประกาศที่อยู่ใน 7 วันล่าสุด และ action = "1" (ประกาศที่ยังใช้งานได้)
+          const filtered = data.filter(
+            (a) =>
+              isWithinLast7Days(a.publish_date) &&
+              (a.action === "1" || a.action === null)
+          );
+          setAnnouncements(filtered);
+          console.log("AnnouncementsPage - Fetched announcements:", filtered);
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
       }
     };
     fetchAnnouncements();
-  }, []);
+  }, [toast]);
 
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
   const handleAddAnnouncement = async () => {
-    const { data, error } = await supabase
-      .from("announcements")
-      .insert([
-        {
-          title: newAnnouncement.title,
-          content: newAnnouncement.content,
-          publish_date: newAnnouncement.publish_date,
-          important: newAnnouncement.important,
-          action:"1",
-        },
-      ])
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .insert([
+          {
+            title: newAnnouncement.title,
+            content: newAnnouncement.content,
+            publish_date: newAnnouncement.publish_date,
+            important: newAnnouncement.important,
+            action: "1",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select();
 
-    if (!error && data) {
-      const valid = data.filter((a) => isWithinLast7Days(a.publish_date));
-      setAnnouncements((prev) => [...prev, ...valid]);
-      setDialogOpen(false);
-      toast({
-        title: t("announcements.added"),
-        description: t("announcements.addedDesc"),
-      });
-      setNewAnnouncement({
-        title: "",
-        content: "",
-        publish_date: new Date().toISOString().split("T")[0],
-        important: false,
-      });
-    } else {
+      if (!error && data) {
+        const valid = data.filter((a) => isWithinLast7Days(a.publish_date));
+        setAnnouncements((prev) => [...prev, ...valid]);
+        setDialogOpen(false);
+        toast({
+          title: t("announcements.added"),
+          description: t("announcements.addedDesc"),
+        });
+        setNewAnnouncement({
+          title: "",
+          content: "",
+          publish_date: new Date().toISOString().split("T")[0],
+          important: false,
+        });
+      } else {
+        toast({
+          title: t("announcements.error"),
+          description: error?.message || "Error",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding announcement:", error);
       toast({
         title: t("announcements.error"),
-        description: error?.message || "Error",
+        description: "An unexpected error occurred while adding announcement",
         variant: "destructive",
       });
     }
   };
 
   const handleDeleteAnnouncement = async (id: string) => {
-    const { error } = await supabase.from("announcements").delete().eq("id", id);
-    if (!error) {
-      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
-      toast({
-        title: t("announcements.deleted"),
-        description: t("announcements.deletedDesc"),
-      });
-    } else {
+    try {
+      const { error } = await supabase
+        .from("announcements")
+        .delete()
+        .eq("id", id);
+      if (!error) {
+        setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+        toast({
+          title: t("announcements.deleted"),
+          description: t("announcements.deletedDesc"),
+        });
+      } else {
+        toast({
+          title: t("announcements.error"),
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
       toast({
         title: t("announcements.error"),
-        description: error.message,
+        description: "An unexpected error occurred while deleting announcement",
         variant: "destructive",
       });
     }
@@ -167,6 +234,7 @@ export default function AnnouncementsPage() {
 
   const hasAnnouncementOnDate = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
+    // ใช้ข้อมูลที่กรองแล้ว (7 วันล่าสุด และ action = "1" หรือ null)
     return announcements.some((a) => a.publish_date === dateStr);
   };
 
@@ -189,20 +257,28 @@ export default function AnnouncementsPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("announcements.add")}</DialogTitle>
-                <DialogDescription>{t("announcements.createDescription")}</DialogDescription>
+                <DialogDescription>
+                  {t("announcements.createDescription")}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <Input
                   value={newAnnouncement.title}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, title: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      title: e.target.value,
+                    })
                   }
                   placeholder={t("announcements.titlePlaceholder")}
                 />
                 <Textarea
                   value={newAnnouncement.content}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, content: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      content: e.target.value,
+                    })
                   }
                   placeholder={t("announcements.contentPlaceholder")}
                   rows={4}
@@ -211,7 +287,10 @@ export default function AnnouncementsPage() {
                   type="date"
                   value={newAnnouncement.publish_date}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, publish_date: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      publish_date: e.target.value,
+                    })
                   }
                 />
                 <div className="flex items-center space-x-2">
@@ -220,10 +299,15 @@ export default function AnnouncementsPage() {
                     className="w-4 h-4"
                     checked={newAnnouncement.important}
                     onChange={(e) =>
-                      setNewAnnouncement({ ...newAnnouncement, important: e.target.checked })
+                      setNewAnnouncement({
+                        ...newAnnouncement,
+                        important: e.target.checked,
+                      })
                     }
                   />
-                  <label className="text-sm">{t("announcements.markImportant")}</label>
+                  <label className="text-sm">
+                    {t("announcements.markImportant")}
+                  </label>
                 </div>
               </div>
               <DialogFooter>
@@ -247,7 +331,9 @@ export default function AnnouncementsPage() {
                 <Button variant="outline" size="icon" onClick={handlePrevMonth}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <div className="mx-2 w-28 text-center">{format(currentDate, "MMMM yyyy")}</div>
+                <div className="mx-2 w-28 text-center">
+                  {format(currentDate, "MMMM yyyy")}
+                </div>
                 <Button variant="outline" size="icon" onClick={handleNextMonth}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -265,7 +351,8 @@ export default function AnnouncementsPage() {
             <div className="grid grid-cols-7 gap-1">
               {currentMonthDays().map((date, i) => {
                 if (!date) return <div key={i} />;
-                const isSelected = selectedDate && isSameDay(date, selectedDate);
+                const isSelected =
+                  selectedDate && isSameDay(date, selectedDate);
                 const has = hasAnnouncementOnDate(date);
                 return (
                   <Button
@@ -298,12 +385,15 @@ export default function AnnouncementsPage() {
           <CardHeader>
             <CardTitle>
               {t("announcements.forDate", {
-                date: selectedDate ? format(selectedDate, "MMMM d, yyyy") : t("announcements.today"),
+                date: selectedDate
+                  ? format(selectedDate, "MMMM d, yyyy")
+                  : t("announcements.today"),
               })}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {selectedDate && getAnnouncementsForDate(selectedDate).length > 0 ? (
+            {selectedDate &&
+            getAnnouncementsForDate(selectedDate).length > 0 ? (
               getAnnouncementsForDate(selectedDate).map((a) => (
                 <Card key={a.id} className="mb-4">
                   <CardHeader className="pb-2">
@@ -317,7 +407,9 @@ export default function AnnouncementsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleDeleteAnnouncement(a.id)}>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteAnnouncement(a.id)}
+                            >
                               {t("announcements.delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -325,7 +417,14 @@ export default function AnnouncementsPage() {
                       )}
                     </div>
                     {a.important && (
-                      <Badge variant="destructive">{t("announcements.important")}</Badge>
+                      <Badge variant="destructive">
+                        {t("announcements.important")}
+                      </Badge>
+                    )}
+                    {a.action && (
+                      <Badge variant="outline" className="ml-2">
+                        Action: {a.action}
+                      </Badge>
                     )}
                   </CardHeader>
                   <CardContent>
@@ -349,8 +448,11 @@ export default function AnnouncementsPage() {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {announcements
-          .filter((a) => isWithinLast7Days(a.publish_date))
-          .sort((a, b) => new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
+          .sort(
+            (a, b) =>
+              new Date(b.publish_date).getTime() -
+              new Date(a.publish_date).getTime()
+          )
           .slice(0, 6)
           .map((a) => (
             <Card key={a.id}>
@@ -375,9 +477,21 @@ export default function AnnouncementsPage() {
                 <p className="line-clamp-2">{a.content}</p>
               </CardContent>
               <CardFooter>
-                {a.important && (
-                  <Badge variant="destructive">{t("announcements.important")}</Badge>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {a.important && (
+                    <Badge variant="destructive">
+                      {t("announcements.important")}
+                    </Badge>
+                  )}
+                  {a.action && (
+                    <Badge variant="outline">Action: {a.action}</Badge>
+                  )}
+                  {a.created_at && (
+                    <Badge variant="secondary" className="text-xs">
+                      Created: {format(parseISO(a.created_at), "MMM d, yyyy")}
+                    </Badge>
+                  )}
+                </div>
               </CardFooter>
             </Card>
           ))}

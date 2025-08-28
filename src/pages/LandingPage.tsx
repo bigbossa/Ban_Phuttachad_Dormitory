@@ -5,20 +5,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { Building, CheckCircle2, MapPin, Lock, WifiIcon, BellRing, CalendarDays, Users, Home, DoorOpen, ArrowUpCircle ,ChevronLeft,ChevronRight} from "lucide-react";
+import {
+  Building,
+  CheckCircle2,
+  MapPin,
+  Lock,
+  WifiIcon,
+  BellRing,
+  CalendarDays,
+  Users,
+  Home,
+  DoorOpen,
+  ArrowUpCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { differenceInDays, format, subMonths,addMonths,isSameDay, parseISO } from "date-fns"; 
+import {
+  differenceInDays,
+  format,
+  subMonths,
+  addMonths,
+  isSameDay,
+  parseISO,
+} from "date-fns";
 import dayjs from "dayjs";
 
 type Announcement = {
   id: string;
   title: string;
   content: string;
-  publish_date: string;
-  important: boolean;
-  action: string;
+  date: string;
+  priority?: "important" | "normal" | "urgent";
 };
 
 export default function LandingPage() {
@@ -31,80 +51,70 @@ export default function LandingPage() {
   const [stats, setStats] = useState({
     totalRooms: 9,
     availableRooms: 3,
-    totalTenants: 6
+    totalTenants: 6,
   });
 
   const roomTypes = [
     {
       id: 1,
-      images: [
-        "https://i.ibb.co/gMBBxJp5/4.jpg",
-      ],
+      images: ["https://i.ibb.co/gMBBxJp5/4.jpg"],
     },
     {
       id: 2,
-      images: [
-        "https://i.ibb.co/nqLg8FsD/1.jpg",
-      ],
+      images: ["https://i.ibb.co/nqLg8FsD/1.jpg"],
     },
     {
       id: 3,
-      images: [
-        "https://i.ibb.co/HRsDfk0/5.jpg",
-      ],
+      images: ["https://i.ibb.co/HRsDfk0/5.jpg"],
     },
   ];
 
+  useEffect(() => {
+    // ใช้ข้อมูลประกาศเหมือนกับ AnnouncementsCard
+    const mockAnnouncements: Announcement[] = [
+      {
+        id: "1",
+        title: "น้ำไม่ไหล",
+        content: "เนื่องจาก การปะปาซ่อมบำรุงท่อส่งน้ำ",
+        date: "30 August 2025",
+        priority: "important",
+      },
+      {
+        id: "2",
+        title: "กำหนดวันชำระค่าเช่า",
+        content:
+          "กรุณาชำระค่าเช่าภายในวันที่ 5 ของทุกเดือน หากเกินกำหนดจะมีค่าปรับ",
+        date: "21 August 2025",
+        priority: "important",
+      },
+      {
+        id: "3",
+        title: "มีการตรวจห้องพัก เพื่อ บำรุงรักษา",
+        content: "เนื่องจาก เป็นการดูแลห้องพัก และ ของใช้ของหอพัก",
+        date: "20 August 2025",
+      },
+      {
+        id: "4",
+        title: "ปิดน้ำเพื่อซ่อมท่อ",
+        content:
+          "แจ้งปิดน้ำชั่วคราว วันที่ 25/08/2025 เวลา 09:00 - 17:00 ขออภัยในความไม่สะดวก",
+        date: "1 August 2025",
+        priority: "important",
+      },
+    ];
 
-useEffect(() => {
-  const fetchAnnouncements = async () => {
-    const { data, error } = await supabase
-      .from("announcements")
-      .select("*")
-      .order("publish_date", { ascending: false })
-      .limit(10); // ดึงมาเยอะหน่อย แล้วค่อยกรองเอง
-
-    if (!error && data) {
-      const filtered = data.filter((announcement: Announcement) => {
-        const days = differenceInDays(new Date(), new Date(announcement.publish_date));
-        return days <= 7;
-      });
-
-      setAnnouncements(filtered as Announcement[]);
-    }
-  };
-
-  fetchAnnouncements();
-}, []);
-
+    setAnnouncements(mockAnnouncements);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setImageIndexes((prev) =>
-        prev.map((idx, i) =>
-          (idx + 1) % roomTypes[i].images.length
-        )
+        prev.map((idx, i) => (idx + 1) % roomTypes[i].images.length)
       );
-    }, 2500); 
+    }, 2500);
 
     return () => clearInterval(interval);
   }, [roomTypes]);
-
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      const { data, error } = await supabase
-        .from("announcements")
-        .select("*")
-        .order("publish_date", { ascending: false })
-        .limit(5); 
-
-      if (!error && data) {
-        setAnnouncements(data as Announcement[]);
-      }
-    };
-
-    fetchAnnouncements();
-  }, []);
 
   // Effect for Back to Top button
   useEffect(() => {
@@ -112,69 +122,13 @@ useEffect(() => {
       setShowBackToTop(window.scrollY > 400);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  
-
-  const fetchAnnouncements = async () => {
-    const { data, error } = await supabase
-      .from("announcements")
-      .select("*")
-      .order("publish_date", { ascending: false });
-    if (!error && data) {
-      setAnnouncements(data);
-    }
-  };
-
-  useEffect(() => {
-    const updateOldAnnouncements = async () => {
-      const today = dayjs();
-
-      // ดึงประกาศที่ action = "1"
-      const { data: announcements, error } = await supabase
-        .from("announcements")
-        .select("id, created_at, action")
-        .eq("action", "1");
-
-      if (error) {
-        console.error("Error fetching announcements:", error);
-        return;
-      }
-
-      if (!announcements) return;
-
-      // กรองประกาศที่เกิน 7 วันจาก created_at
-      const expired = announcements.filter((a) => {
-        if (!a.created_at) return false;
-        const diffDays = today.diff(dayjs(a.created_at), "day");
-        return diffDays > 7;
-      });
-
-      // อัปเดต action เป็น "2"
-      for (const ann of expired) {
-        const { error: updateError } = await supabase
-          .from("announcements")
-          .update({ action: "2" })
-          .eq("id", ann.id);
-
-        if (updateError) {
-          console.error(`Failed to update announcement id=${ann.id}:`, updateError);
-        }
-      }
-
-      // รีโหลดข้อมูลหลังอัพเดตเสร็จ
-      await fetchAnnouncements();
-    };
-
-    updateOldAnnouncements();
-  }, []);
-
 
   const features = [
     {
@@ -206,27 +160,28 @@ useEffect(() => {
       descriptionTh: "ใกล้มหาวิทยาลัยและห้างสรรพสินค้า",
     },
   ];
-  const roomDetailsTitle = language === 'th' ? 'รายละเอียดห้องพัก' : 'Room Details';
+  const roomDetailsTitle =
+    language === "th" ? "รายละเอียดห้องพัก" : "Room Details";
 
   const statsCards = [
     {
-      title: language === 'th' ? 'ห้องทั้งหมด' : 'Total Rooms',
+      title: language === "th" ? "ห้องทั้งหมด" : "Total Rooms",
       value: stats.totalRooms,
-      icon: Home
+      icon: Home,
     },
     {
-      title: language === 'th' ? 'ห้องที่ว่าง' : 'Available Rooms',
+      title: language === "th" ? "ห้องที่ว่าง" : "Available Rooms",
       value: stats.availableRooms,
-      icon: DoorOpen
+      icon: DoorOpen,
     },
     {
-      title: language === 'th' ? 'ผู้เช่าทั้งหมด' : 'Total Tenants',
+      title: language === "th" ? "ผู้เช่าทั้งหมด" : "Total Tenants",
       value: stats.totalTenants,
-      icon: Users
-    }
+      icon: Users,
+    },
   ];
-  
-   const currentMonthDays = () => {
+
+  const currentMonthDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -242,70 +197,28 @@ useEffect(() => {
   };
 
   // เช็คว่ามีประกาศในวันที่ระบุไหม
- const hasAnnouncementOnDate = (date: Date) => {
-  return announcements.some(
-    (a) =>
-      a.action === "1" &&
-      format(new Date(a.publish_date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-  );
-};
+  const hasAnnouncementOnDate = (date: Date) => {
+    return announcements.some((a) => {
+      const announcementDate = new Date(a.date);
+      return (
+        format(announcementDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+      );
+    });
+  };
 
- const [currentDate, setCurrentDate] = useState(new Date());
- const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
- const [newAnnouncement, setNewAnnouncement] = useState<Omit<Announcement, "id">>({
-     title: "",
-     content: "",
-     publish_date: new Date().toISOString().split("T")[0],
-     important: false,
-     action:"",
-   });
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [newAnnouncement, setNewAnnouncement] = useState<
+    Omit<Announcement, "id">
+  >({
+    title: "",
+    content: "",
+    date: new Date().toISOString().split("T")[0],
+    priority: "normal",
+  });
   // เลื่อนเดือน
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-
-  // fetch ประกาศ พร้อมกรองวันที่ไม่เกิน 7 วัน และอัปเดต action เป็น "2" ถ้าเกิน 7 วัน
-  useEffect(() => {
-    const fetchAndUpdateAnnouncements = async () => {
-      const today = dayjs();
-
-      const { data: anns, error } = await supabase
-        .from("announcements")
-        .select("*")
-        .order("publish_date", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching announcements:", error);
-        return;
-      }
-
-      if (!anns) return;
-
-      // อัปเดตประกาศที่เก่าเกิน 7 วัน (action === "1") เป็น "2"
-      for (const ann of anns) {
-        if (ann.action === "1" && ann.created_at) {
-          const diffDays = today.diff(dayjs(ann.created_at), "day");
-          if (diffDays > 7) {
-            await supabase
-              .from("announcements")
-              .update({ action: "2" })
-              .eq("id", ann.id);
-          }
-        }
-      }
-
-      // กรองประกาศ action = "1" และ publish_date ไม่เกิน 7 วัน
-      const filtered = anns.filter((a) => {
-        if (a.action !== "1") return false;
-        if (!a.publish_date) return false;
-        const diffDays = differenceInDays(new Date(), new Date(a.publish_date));
-        return diffDays <= 7;
-      });
-
-      setAnnouncements(filtered);
-    };
-
-    fetchAndUpdateAnnouncements();
-  }, []);
 
   // Image slider auto update
   useEffect(() => {
@@ -341,7 +254,6 @@ useEffect(() => {
           </div>
         </div>
       </nav>
-
       {/* Hero Section */}
       <div className="relative">
         <div className="absolute inset-0 bg-primary/10 z-0"></div>
@@ -355,13 +267,14 @@ useEffect(() => {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Link to="/login">
-                <Button size="lg" className="w-full sm:w-auto">{t("welcome.login")}</Button>
+                <Button size="lg" className="w-full sm:w-auto">
+                  {t("welcome.login")}
+                </Button>
               </Link>
             </div>
           </div>
         </div>
       </div>
-
       {/* Features */}
       <div className="py-8 sm:py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -391,9 +304,12 @@ useEffect(() => {
             ))}
           </div>
         </div>
-      </div>      <div style={{ backgroundColor: '#fb8c00' }} className="py-16">
+      </div>{" "}
+      <div style={{ backgroundColor: "#fb8c00" }} className="py-16">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-6 text-center">{roomDetailsTitle}</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center">
+            {roomDetailsTitle}
+          </h2>
 
           {/* Stats Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -413,7 +329,6 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
       {/* Available Rooms */}
       <div className="py-8 sm:py-16 bg-muted/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -428,7 +343,10 @@ useEffect(() => {
                 key={room.id}
                 className="bg-card rounded-lg overflow-hidden shadow-md border border-border flex flex-col"
               >
-                <div className="w-full h-[400px] overflow-hidden cursor-pointer" onClick={() => setModalImage(room.images[0])}>
+                <div
+                  className="w-full h-[400px] overflow-hidden cursor-pointer"
+                  onClick={() => setModalImage(room.images[0])}
+                >
                   <img
                     src={room.images[0]}
                     alt={`Room ${room.id}`}
@@ -440,7 +358,6 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
       {/* Modal รูปภาพ */}
       {modalImage && (
         <div
@@ -451,22 +368,18 @@ useEffect(() => {
             src={modalImage}
             alt="Room Large"
             className="w-full max-w-[90vw] max-h-[80vh] sm:max-w-[600px] md:max-w-[800px] h-auto rounded-lg shadow-lg border-4 border-white"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           />
-          
         </div>
-      )
-      }
-
+      )}
       {/* Back to Top Button */}
-
-
-            
       {/* Calendar Section */}
-      { /* ข้อความอธิบายเหนือ Calendar */}
+      {/* ข้อความอธิบายเหนือ Calendar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
         <div className="bg-card rounded-lg shadow p-4 text-center">
-          <h3 className="text-xl font-semibold mb-2">{t("calendar.infoTitle")}</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            {t("calendar.infoTitle")}
+          </h3>
           <p className="text-muted-foreground">{t("calendar.infoDesc")}</p>
         </div>
       </div>
@@ -491,11 +404,21 @@ useEffect(() => {
                 <div className="flex items-center justify-between">
                   <CardTitle>{t("announcements.calendar")}</CardTitle>
                   <div className="flex items-center">
-                    <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handlePrevMonth}
+                    >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div className="mx-2 w-28 text-center">{format(currentDate, "MMMM yyyy")}</div>
-                    <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                    <div className="mx-2 w-28 text-center">
+                      {format(currentDate, "MMMM yyyy")}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleNextMonth}
+                    >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -504,18 +427,22 @@ useEffect(() => {
 
               <CardContent>
                 <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                    <div key={day} className="text-xs font-medium py-1">
-                      {t(`days.${day}`)}
-                    </div>
-                  ))}
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day) => (
+                      <div key={day} className="text-xs font-medium py-1">
+                        {t(`days.${day}`)}
+                      </div>
+                    )
+                  )}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
                   {currentMonthDays().map((date, i) => {
                     if (!date) return <div key={i} />;
-                    if (date.getMonth() !== currentDate.getMonth()) return <div key={i} className="text-gray-400 p-2" />;
+                    if (date.getMonth() !== currentDate.getMonth())
+                      return <div key={i} className="text-gray-400 p-2" />;
 
-                    const isSelected = selectedDate && isSameDay(date, selectedDate);
+                    const isSelected =
+                      selectedDate && isSameDay(date, selectedDate);
                     const has = hasAnnouncementOnDate(date);
                     return (
                       <Button
@@ -526,14 +453,16 @@ useEffect(() => {
                           setSelectedDate(date);
                           setNewAnnouncement((prev) => ({
                             ...prev,
-                            publish_date: format(date, "yyyy-MM-dd"),
-                            action: "1",
+                            date: format(date, "yyyy-MM-dd"),
+                            priority: "normal",
                           }));
                         }}
                       >
                         <div className="relative w-full h-full flex items-center justify-center">
                           {date.getDate()}
-                          {has && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"></div>}
+                          {has && (
+                            <div className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"></div>
+                          )}
                         </div>
                       </Button>
                     );
@@ -549,64 +478,76 @@ useEffect(() => {
             >
               <div className="flex items-center gap-2 mb-6">
                 <BellRing className="h-6 w-6 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">{t("announcements.title")}</h3>
+                <h3 className="text-xl font-bold text-foreground">
+                  {t("announcements.title")}
+                </h3>
               </div>
               <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
                 {announcements.length > 0 ? (
-                  announcements
-                    .filter((announcement) => announcement.action === "1")
-                    .slice(0, 7)
-                    .map((announcement) => (
-                      <div
-                        key={announcement.id}
-                        className="p-4 bg-muted/50 rounded-lg border border-border/50
+                  announcements.slice(0, 7).map((announcement) => (
+                    <div
+                      key={announcement.id}
+                      className="p-4 bg-muted/50 rounded-lg border border-border/50
                         hover:bg-muted/70 transition-colors group"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                              {announcement.title}
-                            </h4>
-                            {announcement.important && (
-                              <Badge variant="destructive" className="ml-2">
-                                {t("announcements.important")}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <CalendarDays className="h-4 w-4" />
-                            <span>{format(parseISO(announcement.publish_date), "d MMMM yyyy")}</span>
-                          </div>
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                            {announcement.title}
+                          </h4>
+                          {announcement.priority === "important" && (
+                            <Badge variant="destructive" className="ml-2">
+                              {t("announcements.important")}
+                            </Badge>
+                          )}
                         </div>
-                        <p className="text-muted-foreground mt-2">{announcement.content}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <CalendarDays className="h-4 w-4" />
+                          <span>
+                            {format(new Date(announcement.date), "d MMMM yyyy")}
+                          </span>
+                        </div>
                       </div>
-                    ))
+                      <p className="text-muted-foreground mt-2">
+                        {announcement.content}
+                      </p>
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-10 text-muted-foreground">
                     <BellRing className="mx-auto h-12 w-12 mb-3 text-muted-foreground" />
                     <p>{t("announcements.noAvailable")}</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-      </div>
       </div>
       {/* Back to Top Button */}
       {showBackToTop && (
-        <div
-          className="fixed bottom-4 right-4 z-50"
-          onClick={scrollToTop}
-        >
-          <Button className="rounded-full p-3 bg-primary text-primary-foreground shadow-md
-            transition-all duration-300 hover:scale-110 active:scale-95">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        <div className="fixed bottom-4 right-4 z-50" onClick={scrollToTop}>
+          <Button
+            className="rounded-full p-3 bg-primary text-primary-foreground shadow-md
+            transition-all duration-300 hover:scale-110 active:scale-95"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
           </Button>
         </div>
       )}
-
       {/* Footer */}
       <footer className="bg-background text-foreground border-t border-border py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -623,34 +564,48 @@ useEffect(() => {
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
-
               </div>
             </div>
-            <div>
-            </div>
+            <div></div>
             <div>
               <h3 className="text-lg font-bold mb-4">{t("welcome.contact")}</h3>
               <div className="flex space-x-4">
-                <a href="https://maps.app.goo.gl/SUTe631uLxX4DD3QA" target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-primary">
+                <a
+                  href="https://maps.app.goo.gl/SUTe631uLxX4DD3QA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground hover:text-primary"
+                >
                   <p className="text-muted-foreground">100 หนองปากโลง</p>
-                  <p className="text-muted-foreground">อำเภอเมืองนครปฐม นครปฐม 73000</p>
-                  <p className="text-muted-foreground">{t("welcome.phone")}: 06-5329-9452</p>
+                  <p className="text-muted-foreground">
+                    อำเภอเมืองนครปฐม นครปฐม 73000
+                  </p>
+                  <p className="text-muted-foreground">
+                    {t("welcome.phone")}: 06-5329-9452
+                  </p>
                   <p className="text-muted-foreground">Line : IDLine</p>
-                  <p className="text-muted-foreground"><a href="https://www.facebook.com/poll.ponlop.5/">{t("welcome.facebook")}: Poll Ponlop</a></p>
+                  <p className="text-muted-foreground">
+                    <a href="https://www.facebook.com/poll.ponlop.5/">
+                      {t("welcome.facebook")}: Poll Ponlop
+                    </a>
+                  </p>
                 </a>
               </div>
             </div>
           </div>
           <div className="mt-8 border-t border-border pt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} {t("app.title")}. {t("footer.rights")}.
+              &copy; {new Date().getFullYear()} {t("app.title")}.{" "}
+              {t("footer.rights")}.
             </p>
           </div>
-        </div>      </footer>      {/* Back to Top Button */}
+        </div>{" "}
+      </footer>{" "}
+      {/* Back to Top Button */}
       {showBackToTop && (
         <button
           onClick={scrollToTop}
-          style={{ backgroundColor: '#FF6600' }}
+          style={{ backgroundColor: "#FF6600" }}
           className="fixed bottom-8 right-8 text-white p-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-110 focus:outline-none z-50"
           aria-label="Back to top"
         >

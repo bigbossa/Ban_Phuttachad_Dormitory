@@ -212,14 +212,21 @@ export default function RepairsPage() {
   // โหลดข้อมูลจาก supabase
   useEffect(() => {
     const fetchRepairs = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("repairs")
         .select("*")
         .order("reported_date", { ascending: false });
+
+      // ถ้าเป็นผู้เช่า ให้แสดงเฉพาะห้องของตนเอง
+      if (user?.role === "tenant" && user.tenant?.room_id) {
+        query = query.eq("room_id", user.tenant.room_id);
+      }
+
+      const { data, error } = await query;
       if (!error && data) setRepairs(data as RepairRequest[]);
     };
     fetchRepairs();
-  }, []);
+  }, [user]);
 
   // โหลด rooms
   useEffect(() => {
@@ -238,6 +245,16 @@ export default function RepairsPage() {
     id: string,
     status: RepairRequest["status"]
   ) => {
+    // ตรวจสอบสิทธิ์ - เฉพาะ admin/staff เท่านั้นที่เปลี่ยนสถานะได้
+    if (user?.role !== "admin" && user?.role !== "staff") {
+      toast({
+        title: "ไม่มีสิทธิ์",
+        description: "คุณไม่มีสิทธิ์ในการเปลี่ยนสถานะการแจ้งซ่อม",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from("repairs")
       .update({ status })
@@ -250,13 +267,13 @@ export default function RepairsPage() {
         )
       );
       toast({
-        title: "Repair Status Updated",
-        description: `Status updated to ${status}`,
+        title: "อัปเดตสถานะสำเร็จ",
+        description: `สถานะถูกเปลี่ยนเป็น ${getStatusLabel(status)}`,
       });
     } else {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
     }
@@ -289,7 +306,10 @@ export default function RepairsPage() {
     if (isLoadingRooms) {
       toast({
         title: "กำลังโหลดข้อมูลห้อง",
-        description: "กรุณารอสักครู่...",
+        description:
+          user?.role === "tenant"
+            ? "กำลังโหลดข้อมูลห้องพักของคุณ กรุณารอสักครู่..."
+            : "กรุณารอสักครู่...",
         variant: "destructive",
       });
       return;
@@ -298,7 +318,10 @@ export default function RepairsPage() {
     if (roomsError) {
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถโหลดข้อมูลห้องได้",
+        description:
+          user?.role === "tenant"
+            ? "ไม่สามารถโหลดข้อมูลห้องพักได้ กรุณาลองใหม่อีกครั้ง"
+            : "ไม่สามารถโหลดข้อมูลห้องได้",
         variant: "destructive",
       });
       return;
@@ -318,8 +341,8 @@ export default function RepairsPage() {
       // กรณีเป็น tenant ต้องมี roomId และ roomNumber
       if (!roomId || !roomNumber) {
         toast({
-          title: "Error",
-          description: "กรุณาเลือกห้อง",
+          title: "ไม่พบข้อมูลห้องพัก",
+          description: "กรุณาติดต่อผู้ดูแลระบบเพื่อตรวจสอบข้อมูลห้องพักของคุณ",
           variant: "destructive",
         });
         return;
@@ -341,7 +364,8 @@ export default function RepairsPage() {
         console.log("Room not found in availableRooms");
         toast({
           title: "ไม่พบข้อมูลห้องที่เลือก",
-          description: "ห้องที่เลือกไม่อยู่ในระบบ หรือถูกลบไปแล้ว",
+          description:
+            "ห้องที่เลือกไม่อยู่ในระบบ หรือถูกลบไปแล้ว กรุณาเลือกห้องใหม่",
           variant: "destructive",
         });
         return;
@@ -352,7 +376,10 @@ export default function RepairsPage() {
     if (!newRepair.description?.trim()) {
       toast({
         title: "กรอกข้อมูลไม่ครบ",
-        description: "กรุณากรอกคำอธิบายการแจ้งซ่อม",
+        description:
+          user?.role === "tenant"
+            ? "กรุณากรอกคำอธิบายปัญหาที่ต้องการแจ้งซ่อม"
+            : "กรุณากรอกคำอธิบายการแจ้งซ่อม",
         variant: "destructive",
       });
       return;
@@ -361,7 +388,10 @@ export default function RepairsPage() {
     if (!newRepair.status) {
       toast({
         title: "กรอกข้อมูลไม่ครบ",
-        description: "กรุณาเลือกสถานะการแจ้งซ่อม",
+        description:
+          user?.role === "tenant"
+            ? "สถานะการแจ้งซ่อมจะถูกตั้งเป็น 'รอดำเนินการ' โดยอัตโนมัติ"
+            : "กรุณาเลือกสถานะการแจ้งซ่อม",
         variant: "destructive",
       });
       return;
@@ -370,7 +400,10 @@ export default function RepairsPage() {
     if (!newRepair.reported_date) {
       toast({
         title: "กรอกข้อมูลไม่ครบ",
-        description: "กรุณาเลือกวันที่แจ้งซ่อม",
+        description:
+          user?.role === "tenant"
+            ? "วันที่แจ้งซ่อมจะถูกตั้งเป็นวันปัจจุบันโดยอัตโนมัติ"
+            : "กรุณาเลือกวันที่แจ้งซ่อม",
         variant: "destructive",
       });
       return;
@@ -384,6 +417,16 @@ export default function RepairsPage() {
       toast({
         title: "กรุณาเลือกห้อง",
         description: "กรุณาเลือกห้องที่ต้องการแจ้งซ่อม",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // ตรวจสอบว่าผู้เช่ามีข้อมูลห้องหรือไม่
+    if (user?.role === "tenant" && (!roomId || !roomNumber)) {
+      toast({
+        title: "ไม่พบข้อมูลห้องพัก",
+        description: "กรุณาติดต่อผู้ดูแลระบบเพื่อตรวจสอบข้อมูลห้องพักของคุณ",
         variant: "destructive",
       });
       return;
@@ -417,8 +460,14 @@ export default function RepairsPage() {
 
       setDialogOpen(false);
       toast({
-        title: t("repairs.add") || "Repair Request Added",
-        description: t("repairs.addedDesc") || `Repair request submitted.`,
+        title:
+          user?.role === "tenant"
+            ? "ส่งคำขอแจ้งซ่อมสำเร็จ"
+            : t("repairs.add") || "Repair Request Added",
+        description:
+          user?.role === "tenant"
+            ? `คำขอแจ้งซ่อมสำหรับห้อง ${roomNumber} ถูกส่งเรียบร้อยแล้ว`
+            : t("repairs.addedDesc") || `Repair request submitted.`,
       });
 
       setNewRepair({
@@ -430,8 +479,14 @@ export default function RepairsPage() {
       });
     } else {
       toast({
-        title: t("repairs.error") || "Error",
-        description: error?.message || "Error",
+        title:
+          user?.role === "tenant"
+            ? "เกิดข้อผิดพลาด"
+            : t("repairs.error") || "Error",
+        description:
+          user?.role === "tenant"
+            ? "ไม่สามารถส่งคำขอแจ้งซ่อมได้ กรุณาลองใหม่อีกครั้ง"
+            : error?.message || "Error",
         variant: "destructive",
       });
     }
@@ -440,6 +495,17 @@ export default function RepairsPage() {
   // ฟังก์ชันอัปเดตข้อมูล
   const handleUpdateRepair = async () => {
     if (!editingRepair) return;
+
+    // ตรวจสอบสิทธิ์ - เฉพาะ admin/staff เท่านั้นที่แก้ไขได้
+    if (user?.role !== "admin" && user?.role !== "staff") {
+      toast({
+        title: "ไม่มีสิทธิ์",
+        description: "คุณไม่มีสิทธิ์ในการแก้ไขการแจ้งซ่อม",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { id, ...updateData } = editingRepair;
     const { data, error } = await supabase
       .from("repairs")
@@ -457,8 +523,8 @@ export default function RepairsPage() {
       });
     } else {
       toast({
-        title: t("repairs.error") || "Error",
-        description: error?.message || "Error",
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถอัปเดตการแจ้งซ่อมได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
     }
@@ -508,9 +574,21 @@ export default function RepairsPage() {
         </h1>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          {t("repairs.add") || "แจ้งซ่อมใหม่"}
+          {user?.role === "tenant"
+            ? "แจ้งซ่อมใหม่"
+            : t("repairs.add") || "แจ้งซ่อมใหม่"}
         </Button>
       </div>
+      {/* แสดงข้อมูลห้องสำหรับผู้เช่า */}
+      {user?.role === "tenant" && user.tenant?.room_number && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md hidden">
+          <p className="text-blue-800 font-medium ">
+            กำลังแสดงการแจ้งซ่อมสำหรับห้อง:{" "}
+            <span className="font-bold">{user.tenant.room_number}</span>
+          </p>
+        </div>
+      )}
+
       <div className="flex gap-4 mb-4">
         <Input
           placeholder={t("repairs.searchPlaceholder") || "ค้นหาการแจ้งซ่อม..."}
@@ -559,100 +637,136 @@ export default function RepairsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRepairs.map((repair) => (
-              <TableRow key={repair.id}>
-                <TableCell>{repair.room_number}</TableCell>
-                {/* <TableCell className="hidden md:table-cell font-mono text-sm">
-                  {repair.room_id}
-                </TableCell> */}
-                <TableCell>
-                  {format(parseISO(repair.reported_date), "PPP")}
-                </TableCell>
-                <TableCell>
-                  <Badge className={`${getStatusColor(repair.status)}`}>
-                    {getStatusLabel(repair.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="max-w-[300px] truncate">
-                  {repair.description}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>
-                        {t("common.actions") || "Actions"}
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setViewingRepair(repair);
-                          setViewDialogOpen(true);
-                        }}
-                      >
-                        {t("common.viewDetails") || "ดูรายละเอียด"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="hidden"
-                        onClick={() => {
-                          navigator.clipboard.writeText(repair.room_id);
-                          toast({
-                            title: "คัดลอก Room ID แล้ว",
-                            description: `คัดลอก Room ID: ${repair.room_id}`,
-                          });
-                        }}
-                      >
-                        คัดลอก Room ID
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setEditingRepair(repair);
-                          setEditDialogOpen(true);
-                        }}
-                      >
-                        {t("common.edit") || "แก้ไข"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleChangeRepairStatus(repair.id, "in_progress")
-                        }
-                        disabled={repair.status !== "pending"}
-                      >
-                        {t("repairs.markInProgress") ||
-                          "เปลี่ยนเป็นกำลังดำเนินการ"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleChangeRepairStatus(repair.id, "completed")
-                        }
-                        disabled={
-                          repair.status === "completed" ||
-                          repair.status === "cancelled"
-                        }
-                      >
-                        {t("repairs.markCompleted") || "เปลี่ยนเป็นเสร็จสิ้น"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleChangeRepairStatus(repair.id, "cancelled")
-                        }
-                        disabled={
-                          repair.status === "completed" ||
-                          repair.status === "cancelled"
-                        }
-                        className="text-red-600"
-                      >
-                        {t("repairs.markCancelled") || "เปลี่ยนเป็นยกเลิก"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {filteredRepairs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  {user?.role === "tenant" ? (
+                    <div className="text-center">
+                      <div className="text-gray-500 text-lg mb-2">
+                        ไม่มีการแจ้งซ่อมสำหรับห้อง {user.tenant?.room_number}
+                      </div>
+                      <div className="text-gray-400 text-sm">
+                        ใช้ปุ่ม "แจ้งซ่อมใหม่" เพื่อสร้างการแจ้งซ่อมครั้งแรก
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-gray-500 text-lg mb-2">
+                        ไม่พบการแจ้งซ่อม
+                      </div>
+                      <div className="text-gray-400 text-sm">
+                        ใช้ปุ่ม "แจ้งซ่อมใหม่" เพื่อสร้างการแจ้งซ่อม
+                      </div>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredRepairs.map((repair) => (
+                <TableRow key={repair.id}>
+                  <TableCell>{repair.room_number}</TableCell>
+                  {/* <TableCell className="hidden md:table-cell font-mono text-sm">
+                    {repair.room_id}
+                  </TableCell> */}
+                  <TableCell>
+                    {format(parseISO(repair.reported_date), "PPP")}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`${getStatusColor(repair.status)}`}>
+                      {getStatusLabel(repair.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[300px] truncate">
+                    {repair.description}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>
+                          {t("common.actions") || "Actions"}
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setViewingRepair(repair);
+                            setViewDialogOpen(true);
+                          }}
+                        >
+                          {t("common.viewDetails") || "ดูรายละเอียด"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="hidden"
+                          onClick={() => {
+                            navigator.clipboard.writeText(repair.room_id);
+                            toast({
+                              title: "คัดลอก Room ID แล้ว",
+                              description: `คัดลอก Room ID: ${repair.room_id}`,
+                            });
+                          }}
+                        >
+                          คัดลอก Room ID
+                        </DropdownMenuItem>
+                        {/* แสดงปุ่มแก้ไขเฉพาะ admin/staff เท่านั้น */}
+                        {(user?.role === "admin" || user?.role === "staff") && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingRepair(repair);
+                                setEditDialogOpen(true);
+                              }}
+                            >
+                              {t("common.edit") || "แก้ไข"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleChangeRepairStatus(
+                                  repair.id,
+                                  "in_progress"
+                                )
+                              }
+                              disabled={repair.status !== "pending"}
+                            >
+                              {t("repairs.markInProgress") ||
+                                "เปลี่ยนเป็นกำลังดำเนินการ"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleChangeRepairStatus(repair.id, "completed")
+                              }
+                              disabled={
+                                repair.status === "completed" ||
+                                repair.status === "cancelled"
+                              }
+                            >
+                              {t("repairs.markCompleted") ||
+                                "เปลี่ยนเป็นเสร็จสิ้น"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleChangeRepairStatus(repair.id, "cancelled")
+                              }
+                              disabled={
+                                repair.status === "completed" ||
+                                repair.status === "cancelled"
+                              }
+                              className="text-red-600"
+                            >
+                              {t("repairs.markCancelled") ||
+                                "เปลี่ยนเป็นยกเลิก"}
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -664,9 +778,16 @@ export default function RepairsPage() {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("repairs.add")}</DialogTitle>
+            <DialogTitle>
+              {user?.role === "tenant"
+                ? "แจ้งซ่อมใหม่"
+                : t("repairs.add") || "แจ้งซ่อมใหม่"}
+            </DialogTitle>
             <DialogDescription>
-              {t("repairs.createDescription") || "Submit a new repair request."}
+              {user?.role === "tenant"
+                ? "ส่งคำขอแจ้งซ่อมสำหรับห้องพักของคุณ"
+                : t("repairs.createDescription") ||
+                  "Submit a new repair request."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -736,7 +857,7 @@ export default function RepairsPage() {
                         <SelectItem key={room.id} value={room.id}>
                           <div className="flex items-center justify-between w-full">
                             <span className="flex items-center gap-2">
-                              ห้อง {room.room_number}
+                              {room.room_number}
                               <span
                                 className={`text-xs px-2 py-1 rounded-full hidden ${
                                   room.status === "vacant"
@@ -802,13 +923,18 @@ export default function RepairsPage() {
                 )}
               </div>
             ) : user?.role === "tenant" ? (
-              <div className="px-4 py-2 rounded border text-muted-foreground">
-                ห้องพักของคุณ:{" "}
-                <span className="font-semibold text-primary">
-                  {user.tenant?.room_number ||
-                    t("repairs.noRoomInfo") ||
-                    "ไม่พบข้อมูล"}
-                </span>
+              <div className="px-4 py-2 rounded border bg-blue-50 border-blue-200">
+                <div className="text-blue-800 font-medium">
+                  ห้องพักของคุณ:{" "}
+                  <span className="font-semibold text-blue-900">
+                    {user.tenant?.room_number ||
+                      t("repairs.noRoomInfo") ||
+                      "ไม่พบข้อมูล"}
+                  </span>
+                </div>
+                <div className="text-blue-600 text-sm mt-1">
+                  การแจ้งซ่อมจะถูกส่งสำหรับห้องนี้โดยอัตโนมัติ
+                </div>
               </div>
             ) : (
               <div className="px-4 py-2 text-muted-foreground">
@@ -868,85 +994,93 @@ export default function RepairsPage() {
           </div>
           <DialogFooter>
             <Button onClick={handleAddRepair} disabled={isLoadingRooms}>
-              {isLoadingRooms ? "กำลังโหลด..." : t("repairs.add")}
+              {isLoadingRooms
+                ? "กำลังโหลด..."
+                : user?.role === "tenant"
+                ? "ส่งคำขอแจ้งซ่อม"
+                : t("repairs.add") || "แจ้งซ่อมใหม่"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Repair Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("repairs.edit") || "แก้ไขการแจ้งซ่อม"}</DialogTitle>
-          </DialogHeader>
-          {editingRepair && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="edit_room_id">{t("repairs.room")}</label>
-                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-orange-800">
-                      ห้อง {editingRepair.room_number}
-                    </span>
-                    <span className="text-xs text-orange-600 hidden">
-                      Room ID: {editingRepair.room_id}
-                    </span>
+      {/* Edit Repair Dialog - เฉพาะ admin/staff เท่านั้น */}
+      {(user?.role === "admin" || user?.role === "staff") && (
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {t("repairs.edit") || "แก้ไขการแจ้งซ่อม"}
+              </DialogTitle>
+            </DialogHeader>
+            {editingRepair && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label htmlFor="edit_room_id">{t("repairs.room")}</label>
+                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-orange-800">
+                        ห้อง {editingRepair.room_number}
+                      </span>
+                      <span className="text-xs text-orange-600 hidden">
+                        Room ID: {editingRepair.room_id}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <label htmlFor="edit_description">
+                    {t("repairs.description")}
+                  </label>
+                  <Textarea
+                    id="edit_description"
+                    value={editingRepair.description}
+                    onChange={(e) =>
+                      setEditingRepair({
+                        ...editingRepair,
+                        description: e.target.value,
+                      })
+                    }
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="edit_status">{t("repairs.status")}</label>
+                  <Select
+                    value={editingRepair.status}
+                    onValueChange={(value: RepairRequest["status"]) =>
+                      setEditingRepair({ ...editingRepair, status: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">
+                        {t("repairs.status_pending") || "Pending"}
+                      </SelectItem>
+                      <SelectItem value="in_progress">
+                        {t("repairs.status_in_progress") || "In Progress"}
+                      </SelectItem>
+                      <SelectItem value="completed">
+                        {t("repairs.status_completed") || "Completed"}
+                      </SelectItem>
+                      <SelectItem value="cancelled">
+                        {t("repairs.status_cancelled") || "Cancelled"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label htmlFor="edit_description">
-                  {t("repairs.description")}
-                </label>
-                <Textarea
-                  id="edit_description"
-                  value={editingRepair.description}
-                  onChange={(e) =>
-                    setEditingRepair({
-                      ...editingRepair,
-                      description: e.target.value,
-                    })
-                  }
-                  rows={4}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit_status">{t("repairs.status")}</label>
-                <Select
-                  value={editingRepair.status}
-                  onValueChange={(value: RepairRequest["status"]) =>
-                    setEditingRepair({ ...editingRepair, status: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">
-                      {t("repairs.status_pending") || "Pending"}
-                    </SelectItem>
-                    <SelectItem value="in_progress">
-                      {t("repairs.status_in_progress") || "In Progress"}
-                    </SelectItem>
-                    <SelectItem value="completed">
-                      {t("repairs.status_completed") || "Completed"}
-                    </SelectItem>
-                    <SelectItem value="cancelled">
-                      {t("repairs.status_cancelled") || "Cancelled"}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={handleUpdateRepair}>
-              {t("repairs.saveEdit") || "บันทึกการแก้ไข"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            )}
+            <DialogFooter>
+              <Button onClick={handleUpdateRepair}>
+                {t("repairs.saveEdit") || "บันทึกการแก้ไข"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* View Details Dialog */}
       <RepairDetailsDialog

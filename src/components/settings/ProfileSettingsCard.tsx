@@ -257,7 +257,7 @@ export function ProfileSettingsCard() {
           <div>
             <Label
               htmlFor="email"
-              className="flex items-center space-x-1 text-sm font-medium"
+              className="flex items-center space-x-1 text-sm font-medium " 
             >
               <Mail className="h-4 w-4" />
               <span>{t("profile.email")}</span>
@@ -269,6 +269,7 @@ export function ProfileSettingsCard() {
               onChange={(e) => handleInputChange("email", e.target.value)}
               placeholder="example@email.com"
               className="mt-1"
+              readOnly
             />
           </div>
 
@@ -306,7 +307,7 @@ export function ProfileSettingsCard() {
             />
           </div>
 
-          <div>
+          <div className="hidden">
             <Label
               htmlFor="emergencyContact"
               className="flex items-center space-x-1 text-sm font-medium"

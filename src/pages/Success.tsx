@@ -11,7 +11,7 @@ const Success = () => {
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const sessionId = searchParams.get('session_id');
+  const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
     if (sessionId) {
@@ -32,7 +32,7 @@ const Success = () => {
         setPaymentDetails(result);
       }
     } catch (error) {
-      console.error('Error verifying payment:', error);
+      console.error("Error verifying payment:", error);
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +101,8 @@ const Success = () => {
               <div className="text-center space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800">
-                    Thank you for your payment! A receipt has been sent to your email.
+                    Thank you for your payment! A receipt has been sent to your
+                    email.
                   </p>
                 </div>
 

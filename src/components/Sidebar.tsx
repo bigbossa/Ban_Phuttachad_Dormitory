@@ -133,11 +133,6 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       icon: Wrench,
     },
     {
-      name: t("nav.announcements"),
-      href: "/announcements",
-      icon: Calendar,
-    },
-    {
       name: t("nav.profile"),
       href: "/profile",
       icon: UserCircle,

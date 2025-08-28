@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useReportsData } from "../hooks/useReportsData";
-
+import { useLanguage } from "@/providers/LanguageProvider";
 type RoomTypeData = {
   name: string;
   value: number;
@@ -27,7 +27,7 @@ interface PieChartsProps {
 
 export const PieCharts = ({ selectedReport }: PieChartsProps) => {
   const { roomTypeDistribution, repairTypeDistribution, isLoading } = useReportsData(selectedReport);
-
+  const { t } = useLanguage();
   if (isLoading) {
     return (
       <Card>
@@ -78,9 +78,10 @@ export const PieCharts = ({ selectedReport }: PieChartsProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Repair Request Analysis</CardTitle>
-          <CardDescription>Distribution of repair request statuses</CardDescription>
-        </CardHeader>        <CardContent className="h-[500px]">
+          <CardTitle>{t("reports.repairRequestAnalysis")}</CardTitle>
+          <CardDescription>{t("reports.repairRequestAnalysisDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

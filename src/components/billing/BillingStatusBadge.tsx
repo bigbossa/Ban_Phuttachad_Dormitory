@@ -1,11 +1,12 @@
-
 import { Badge } from "@/components/ui/badge";
 
 interface BillingStatusBadgeProps {
   status: string;
 }
 
-export default function BillingStatusBadge({ status }: BillingStatusBadgeProps) {
+export default function BillingStatusBadge({
+  status,
+}: BillingStatusBadgeProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":

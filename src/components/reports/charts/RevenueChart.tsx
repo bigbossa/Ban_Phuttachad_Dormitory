@@ -17,6 +17,7 @@ import {
   TooltipProps,
 } from "recharts";
 import { useReportsData } from "../hooks/useReportsData";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 
 // Create custom tooltip component
@@ -48,14 +49,14 @@ const formatCurrency = (amount: number) => {
 
 export const RevenueChart = () => {
   const { revenueData, isLoading } = useReportsData("revenue");
-
+  const { t } = useLanguage();
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Revenue Analysis</CardTitle>
+          <CardTitle>{t("Revenue.Analysis")}</CardTitle>
           <CardDescription>
-            Monthly revenue data for the dormitory
+            {t("Revenue.Analysis.Description")}
           </CardDescription>
         </CardHeader>{" "}
         <CardContent className="h-[500px] flex items-center justify-center">
@@ -68,10 +69,10 @@ export const RevenueChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Revenue Analysis</CardTitle>
-        <CardDescription>
-          Monthly revenue data for the dormitory
-        </CardDescription>
+          <CardTitle>{t("Revenue.Analysis")}</CardTitle>
+          <CardDescription>
+            {t("Revenue.Analysis.Description")}
+          </CardDescription>
       </CardHeader>
       <CardContent className="h-[500px]">
         <ChartContainer

@@ -252,7 +252,10 @@ export const RevenueYearlyChart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    {t("reports.bestYearRevenue", { year: revenueSummaryData.bestYear })}:
+                    {t("reports.bestYearRevenue", {
+                      year: revenueSummaryData.bestYear,
+                    })}
+                    :
                   </span>
                   <span className="font-semibold text-purple-600 dark:text-purple-400">
                     {formatCurrency(revenueSummaryData.bestYearRevenue)}

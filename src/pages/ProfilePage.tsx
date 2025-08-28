@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/providers/AuthProvider";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { ProfileSettingsCard } from "@/components/settings/ProfileSettingsCard";
@@ -42,9 +41,11 @@ export default function ProfilePage() {
             }
           </p>
         </div>
-        <Badge variant="secondary" className="px-3 py-1">
-          {getRoleText(user?.role || 'visitor')}
-        </Badge>
+        {user?.role !== 'tenant' && (
+          <Badge variant="secondary" className="px-3 py-1">
+            {getRoleText(user?.role || 'visitor')}
+          </Badge>
+        )}
       </div>
 
       <div className="max-w-2xl">
