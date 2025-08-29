@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useEffect, useState,useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,7 +59,8 @@ interface Province {
 function transformData(): Province[] {
   const tambonsByAmphure: Record<number, Tambon[]> = {};
   tambonsRaw.forEach((tambon: Tambon) => {
-    if (!tambonsByAmphure[tambon.amphure_id]) tambonsByAmphure[tambon.amphure_id] = [];
+    if (!tambonsByAmphure[tambon.amphure_id])
+      tambonsByAmphure[tambon.amphure_id] = [];
     tambonsByAmphure[tambon.amphure_id].push(tambon);
   });
 
@@ -73,7 +74,6 @@ function transformData(): Province[] {
     amphoes: amphoesWithDistricts.filter((amp) => amp.province_id === prov.id),
   }));
 }
-
 
 const tenantSchema = z.object({
   firstName: z.string().nonempty("กรุณากรอกชื่อ"),
@@ -160,7 +160,6 @@ export default function TenantFormDialog({
     },
   });
 
-
   // ฟอร์มลูกห้อง (resident)
   const residentForm = useForm<ResidentInsert>({
     resolver: zodResolver(residentSchema),
@@ -203,22 +202,22 @@ export default function TenantFormDialog({
     return result;
   }
 
-   const data = useMemo(() => transformData(), []);
-   
-     const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
-     const [selectedAmphoe, setSelectedAmphoe] = useState<Amphure | null>(null);
-     const [selectedDistrict, setSelectedDistrict] = useState<Tambon | null>(null);
-   
-     // ตัวเลือกสำหรับ React Select
-     const provinceOptions = data.map((p) => ({ value: p.id, label: p.name_th }));
-     const amphoeOptions = selectedProvince
-       ? selectedProvince.amphoes.map((a) => ({ value: a.id, label: a.name_th }))
-       : [];
-     const districtOptions = selectedAmphoe
-       ? selectedAmphoe.districts.map((d) => ({ value: d.id, label: d.name_th }))
-       : [];
-   
-   
+  const data = useMemo(() => transformData(), []);
+
+  const [selectedProvince, setSelectedProvince] = useState<Province | null>(
+    null
+  );
+  const [selectedAmphoe, setSelectedAmphoe] = useState<Amphure | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<Tambon | null>(null);
+
+  // ตัวเลือกสำหรับ React Select
+  const provinceOptions = data.map((p) => ({ value: p.id, label: p.name_th }));
+  const amphoeOptions = selectedProvince
+    ? selectedProvince.amphoes.map((a) => ({ value: a.id, label: a.name_th }))
+    : [];
+  const districtOptions = selectedAmphoe
+    ? selectedAmphoe.districts.map((d) => ({ value: d.id, label: d.name_th }))
+    : [];
 
   useEffect(() => {
     async function loadData() {
@@ -254,9 +253,9 @@ export default function TenantFormDialog({
         .from("tenants")
         .select("*")
         .eq("room_id", room_id)
-        .eq("action", "1") 
-        .ilike("residents","ลูกเช่า")
-        .limit(1)
+        .eq("action", "1")
+        .ilike("residents", "ลูกเช่า")
+        .limit(1);
 
       if (error) {
         toast({
@@ -304,8 +303,8 @@ export default function TenantFormDialog({
       return;
     }
 
-     const streetPart = data.street ? `ถนน ${data.street} ` : "ถนน -";
-     const fullAddress = `บ้านเลขที่ ${data.houseNumber} หมู่ที่ ${data.village} ${streetPart} ตำบล ${data.subDistrict} อำเภอ ${data.district} จังหวัด ${data.province} รหัสไปรษณีย์ ${selectedDistrict?.zip_code} `;
+    const streetPart = data.street ? `ถนน ${data.street} ` : "ถนน -";
+    const fullAddress = `บ้านเลขที่ ${data.houseNumber} หมู่ที่ ${data.village} ${streetPart} ตำบล ${data.subDistrict} อำเภอ ${data.district} จังหวัด ${data.province} รหัสไปรษณีย์ ${selectedDistrict?.zip_code} `;
 
     const tenantPayload = {
       first_name: data.firstName,
@@ -315,7 +314,7 @@ export default function TenantFormDialog({
       address: fullAddress, // เปลี่ยนจาก fullAddress เป็น address
       id_card: data.id_card,
       room_id,
-      action: "1", 
+      action: "1",
     };
 
     const idToUpdate = tenant?.id;
@@ -373,8 +372,8 @@ export default function TenantFormDialog({
       return;
     }
 
-     const streetPart = data.street ? `ถนน ${data.street} ` : "ถนน -";
-     const fullAddress = `บ้านเลขที่ ${data.houseNumber} หมู่ที่ ${data.village} ${streetPart} ตำบล ${data.subDistrict} อำเภอ ${data.district} จังหวัด ${data.province} รหัสไปรษณีย์ ${selectedDistrict?.zip_code} `;
+    const streetPart = data.street ? `ถนน ${data.street} ` : "ถนน -";
+    const fullAddress = `บ้านเลขที่ ${data.houseNumber} หมู่ที่ ${data.village} ${streetPart} ตำบล ${data.subDistrict} อำเภอ ${data.district} จังหวัด ${data.province} รหัสไปรษณีย์ ${selectedDistrict?.zip_code} `;
 
     const residentPayload = {
       first_name: data.firstName,
@@ -384,7 +383,7 @@ export default function TenantFormDialog({
       id_card: data.id_card,
       address: fullAddress, // เปลี่ยนจาก fullAddress เป็น address
       room_id,
-      action: "1", 
+      action: "1",
     };
 
     try {
@@ -399,7 +398,9 @@ export default function TenantFormDialog({
         toast({ title: "แก้ไขข้อมูลลูกห้องสำเร็จ" });
       } else {
         // insert
-        const { error } = await supabase.from("tenants").insert(residentPayload);
+        const { error } = await supabase
+          .from("tenants")
+          .insert(residentPayload);
         if (error) throw error;
         toast({ title: "เพิ่มข้อมูลลูกห้องสำเร็จ" });
       }
@@ -415,13 +416,14 @@ export default function TenantFormDialog({
       toast({
         variant: "destructive",
         title: "เกิดข้อผิดพลาด",
-        description: (err as Error).message || "ไม่สามารถบันทึกข้อมูลลูกห้องได้",
+        description:
+          (err as Error).message || "ไม่สามารถบันทึกข้อมูลลูกห้องได้",
       });
     }
   };
 
-const [roomTenants, setRoomTenants] = useState<Tenant[]>([]);
- useEffect(() => {
+  const [roomTenants, setRoomTenants] = useState<Tenant[]>([]);
+  useEffect(() => {
     async function fetchRoomTenants() {
       if (!tenant?.room_id) return;
 
@@ -431,7 +433,7 @@ const [roomTenants, setRoomTenants] = useState<Tenant[]>([]);
         .eq("room_id", tenant.room_id)
         .eq("action", "1")
         .ilike("residents", "%ลูกเช่า%")
-        .neq("id", tenant.id); 
+        .neq("id", tenant.id);
 
       if (!error && data) {
         setRoomTenants(data);
@@ -443,41 +445,43 @@ const [roomTenants, setRoomTenants] = useState<Tenant[]>([]);
     }
   }, [open, tenant]);
 
-  
- useEffect(() => {
-  if (!tenant || data.length === 0) return;
+  useEffect(() => {
+    if (!tenant || data.length === 0) return;
 
-  const addressParts = parseAddress(tenant.address || "");
-  console.log("addressParts", addressParts);
-  console.log("data", data);
+    const addressParts = parseAddress(tenant.address || "");
+    console.log("addressParts", addressParts);
+    console.log("data", data);
 
-  tenantForm.reset({
-    firstName: tenant.first_name || "",
-    lastName: tenant.last_name || "",
-    email: tenant.email || "",
-    phone: tenant.phone || "",
-    houseNumber: addressParts.houseNumber || "",
-    village: addressParts.village || "",
-    street: addressParts.street || "",
-    subDistrict: addressParts.subDistrict || "",
-    district: addressParts.district || "",
-    province: addressParts.province || "",
-    zip_code: "",
-  });
+    tenantForm.reset({
+      firstName: tenant.first_name || "",
+      lastName: tenant.last_name || "",
+      email: tenant.email || "",
+      phone: tenant.phone || "",
+      houseNumber: addressParts.houseNumber || "",
+      village: addressParts.village || "",
+      street: addressParts.street || "",
+      subDistrict: addressParts.subDistrict || "",
+      district: addressParts.district || "",
+      province: addressParts.province || "",
+      zip_code: "",
+    });
 
-  // 🔍 ตรวจสอบชื่อที่ใช้ match
-  const prov = data.find((p) => p.name_th.trim() === addressParts.province?.trim());
-  setSelectedProvince(prov || null);
+    // 🔍 ตรวจสอบชื่อที่ใช้ match
+    const prov = data.find(
+      (p) => p.name_th.trim() === addressParts.province?.trim()
+    );
+    setSelectedProvince(prov || null);
 
-  const amp = prov?.amphoes.find((a) => a.name_th.trim() === addressParts.district?.trim());
-  setSelectedAmphoe(amp || null);
+    const amp = prov?.amphoes.find(
+      (a) => a.name_th.trim() === addressParts.district?.trim()
+    );
+    setSelectedAmphoe(amp || null);
 
-  const dist = amp?.districts.find((d) => d.name_th.trim() === addressParts.subDistrict?.trim());
-  setSelectedDistrict(dist || null);
-}, [tenant, data, tenantForm]);
-;
-
-
+    const dist = amp?.districts.find(
+      (d) => d.name_th.trim() === addressParts.subDistrict?.trim()
+    );
+    setSelectedDistrict(dist || null);
+  }, [tenant, data, tenantForm]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto">
@@ -593,103 +597,146 @@ const [roomTenants, setRoomTenants] = useState<Tenant[]>([]);
                     </FormItem>
                   )}
                 />
-                 <FormField
-            control={tenantForm.control}
-            name="province"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>จังหวัด</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={provinceOptions}
-                    value={selectedProvince ? { value: selectedProvince.id, label: selectedProvince.name_th } : null}
-                    onChange={(option) => {
-                      const prov = data.find((p) => p.id === option?.value) || null;
-                      setSelectedProvince(prov);
-                      setSelectedAmphoe(null);
-                      setSelectedDistrict(null);
-                      tenantForm.setValue("province", option?.label || "");
-                      tenantForm.setValue("district", "");
-                      tenantForm.setValue("subDistrict", "");
-                    }}
-                    placeholder="เลือกจังหวัด"
-                    isClearable
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={tenantForm.control}
-            name="district"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>อำเภอ/เขต</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={amphoeOptions}
-                    value={selectedAmphoe ? { value: selectedAmphoe.id, label: selectedAmphoe.name_th } : null}
-                    onChange={(option) => {
-                      if (!selectedProvince) return;
-                      const amp = selectedProvince.amphoes.find((a) => a.id === option?.value) || null;
-                      setSelectedAmphoe(amp);
-                      setSelectedDistrict(null);
-                      tenantForm.setValue("district", option?.label || "");
-                      tenantForm.setValue("subDistrict", "");
-                    }}
-                    placeholder={selectedProvince ? "เลือกอำเภอ" : "กรุณาเลือกจังหวัดก่อน"}
-                    isClearable
-                    isDisabled={!selectedProvince}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={tenantForm.control}
-            name="subDistrict"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>ตำบล/แขวง</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={districtOptions}
-                    value={selectedDistrict ? { value: selectedDistrict.id, label: selectedDistrict.name_th } : null}
-                    onChange={(option) => {
-                      if (!selectedAmphoe) return;
-                      const dist = selectedAmphoe.districts.find((d) => d.id === option?.value) || null;
-                      setSelectedDistrict(dist);
-                      tenantForm.setValue("subDistrict", option?.label || "");
-                    }}
-                    placeholder={selectedAmphoe ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"}
-                    isClearable
-                    isDisabled={!selectedAmphoe}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                <FormField
+                  control={tenantForm.control}
+                  name="province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>จังหวัด</FormLabel>
+                      <FormControl>
+                        <MySelect
+                          {...field}
+                          options={provinceOptions}
+                          value={
+                            selectedProvince
+                              ? {
+                                  value: selectedProvince.id,
+                                  label: selectedProvince.name_th,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            const prov =
+                              data.find((p) => p.id === option?.value) || null;
+                            setSelectedProvince(prov);
+                            setSelectedAmphoe(null);
+                            setSelectedDistrict(null);
+                            tenantForm.setValue(
+                              "province",
+                              option?.label || ""
+                            );
+                            tenantForm.setValue("district", "");
+                            tenantForm.setValue("subDistrict", "");
+                          }}
+                          placeholder="เลือกจังหวัด"
+                          isClearable
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-             <div>
-              <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
-              <input
-                type="text"
-                readOnly
-                className="w-full border rounded px-3 py-2 bg-gray-100"
-                value={selectedDistrict?.zip_code || ""}
-                placeholder="รหัสไปรษณีย์"
-              />
-            </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={tenantForm.control}
+                  name="district"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>อำเภอ/เขต</FormLabel>
+                      <FormControl>
+                        <MySelect
+                          {...field}
+                          options={amphoeOptions}
+                          value={
+                            selectedAmphoe
+                              ? {
+                                  value: selectedAmphoe.id,
+                                  label: selectedAmphoe.name_th,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            if (!selectedProvince) return;
+                            const amp =
+                              selectedProvince.amphoes.find(
+                                (a) => a.id === option?.value
+                              ) || null;
+                            setSelectedAmphoe(amp);
+                            setSelectedDistrict(null);
+                            tenantForm.setValue(
+                              "district",
+                              option?.label || ""
+                            );
+                            tenantForm.setValue("subDistrict", "");
+                          }}
+                          placeholder={
+                            selectedProvince
+                              ? "เลือกอำเภอ"
+                              : "กรุณาเลือกจังหวัดก่อน"
+                          }
+                          isClearable
+                          isDisabled={!selectedProvince}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={tenantForm.control}
+                  name="subDistrict"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ตำบล/แขวง</FormLabel>
+                      <FormControl>
+                        <MySelect
+                          {...field}
+                          options={districtOptions}
+                          value={
+                            selectedDistrict
+                              ? {
+                                  value: selectedDistrict.id,
+                                  label: selectedDistrict.name_th,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            if (!selectedAmphoe) return;
+                            const dist =
+                              selectedAmphoe.districts.find(
+                                (d) => d.id === option?.value
+                              ) || null;
+                            setSelectedDistrict(dist);
+                            tenantForm.setValue(
+                              "subDistrict",
+                              option?.label || ""
+                            );
+                          }}
+                          placeholder={
+                            selectedAmphoe ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"
+                          }
+                          isClearable
+                          isDisabled={!selectedAmphoe}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
+                <input
+                  type="text"
+                  readOnly
+                  className="w-full border rounded px-3 py-2 bg-gray-100"
+                  value={selectedDistrict?.zip_code || ""}
+                  placeholder="รหัสไปรษณีย์"
+                />
+              </div>
 
               <div className="text-sm text-muted-foreground">
                 ห้องที่เลือก: <strong>{room_number}</strong>
@@ -703,218 +750,264 @@ const [roomTenants, setRoomTenants] = useState<Tenant[]>([]);
         </div>
 
         {/* ฟอร์มลูกห้อง */}
-      {roomTenants.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">ข้อมูลลูกห้อง</h3>
-          <Form {...residentForm}>
-            <form
-              onSubmit={residentForm.handleSubmit(onSubmitResident)}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={residentForm.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ชื่อ</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ชื่อ" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={residentForm.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>นามสกุล</FormLabel>
-                      <FormControl>
-                        <Input placeholder="นามสกุล" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={residentForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>อีเมล</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="อีเมล" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={residentForm.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>เบอร์โทร</FormLabel>
-                    <FormControl>
-                      <Input placeholder="เบอร์โทร" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={residentForm.control}
-                  name="houseNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>บ้านเลขที่</FormLabel>
-                      <FormControl>
-                        <Input placeholder="บ้านเลขที่" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={residentForm.control}
-                  name="village"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>หมู่ที่</FormLabel>
-                      <FormControl>
-                        <Input placeholder="หมู่ที่" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={residentForm.control}
-                  name="street"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ถนน (ไม่จำเป็น)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ถนน" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-            control={residentForm.control}
-            name="province"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>จังหวัด</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={provinceOptions}
-                    value={selectedProvince ? { value: selectedProvince.id, label: selectedProvince.name_th } : null}
-                    onChange={(option) => {
-                      const prov = data.find((p) => p.id === option?.value) || null;
-                      setSelectedProvince(prov);
-                      setSelectedAmphoe(null);
-                      setSelectedDistrict(null);
-                      residentForm.setValue("province", option?.label || "");
-                      residentForm.setValue("district", "");
-                      residentForm.setValue("subDistrict", "");
-                    }}
-                    placeholder="เลือกจังหวัด"
-                    isClearable
+        {roomTenants.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">ข้อมูลลูกห้อง</h3>
+            <Form {...residentForm}>
+              <form
+                onSubmit={residentForm.handleSubmit(onSubmitResident)}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={residentForm.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ชื่อ</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ชื่อ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={residentForm.control}
-            name="district"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>อำเภอ/เขต</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={amphoeOptions}
-                    value={selectedAmphoe ? { value: selectedAmphoe.id, label: selectedAmphoe.name_th } : null}
-                    onChange={(option) => {
-                      if (!selectedProvince) return;
-                      const amp = selectedProvince.amphoes.find((a) => a.id === option?.value) || null;
-                      setSelectedAmphoe(amp);
-                      setSelectedDistrict(null);
-                      residentForm.setValue("district", option?.label || "");
-                      residentForm.setValue("subDistrict", "");
-                    }}
-                    placeholder={selectedProvince ? "เลือกอำเภอ" : "กรุณาเลือกจังหวัดก่อน"}
-                    isClearable
-                    isDisabled={!selectedProvince}
+                  <FormField
+                    control={residentForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>นามสกุล</FormLabel>
+                        <FormControl>
+                          <Input placeholder="นามสกุล" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                </div>
 
-          <FormField
-            control={residentForm.control}
-            name="subDistrict"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>ตำบล/แขวง</FormLabel>
-                <FormControl>
-                  <MySelect 
-                    {...field}
-                    options={districtOptions}
-                    value={selectedDistrict ? { value: selectedDistrict.id, label: selectedDistrict.name_th } : null}
-                    onChange={(option) => {
-                      if (!selectedAmphoe) return;
-                      const dist = selectedAmphoe.districts.find((d) => d.id === option?.value) || null;
-                      setSelectedDistrict(dist);
-                      residentForm.setValue("subDistrict", option?.label || "");
-                    }}
-                    placeholder={selectedAmphoe ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"}
-                    isClearable
-                    isDisabled={!selectedAmphoe}
+                <FormField
+                  control={residentForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>อีเมล</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="อีเมล" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={residentForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>เบอร์โทร</FormLabel>
+                      <FormControl>
+                        <Input placeholder="เบอร์โทร" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={residentForm.control}
+                    name="houseNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>บ้านเลขที่</FormLabel>
+                        <FormControl>
+                          <Input placeholder="บ้านเลขที่" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-              </div>
-             <div>
-              <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
-              <input
-                type="text"
-                readOnly
-                className="w-full border rounded px-3 py-2 bg-gray-100"
-                value={selectedDistrict?.zip_code || ""}
-                placeholder="รหัสไปรษณีย์"
-              />
-            </div>
+                  <FormField
+                    control={residentForm.control}
+                    name="village"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>หมู่ที่</FormLabel>
+                        <FormControl>
+                          <Input placeholder="หมู่ที่" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <div className="flex justify-end mt-2">
-                <Button type="submit">บันทึกลูกห้อง</Button>
-              </div>
-            </form>
-          </Form>
-        </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={residentForm.control}
+                    name="street"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ถนน (ไม่จำเป็น)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ถนน" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={residentForm.control}
+                    name="province"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>จังหวัด</FormLabel>
+                        <FormControl>
+                          <MySelect
+                            {...field}
+                            options={provinceOptions}
+                            value={
+                              selectedProvince
+                                ? {
+                                    value: selectedProvince.id,
+                                    label: selectedProvince.name_th,
+                                  }
+                                : null
+                            }
+                            onChange={(option) => {
+                              const prov =
+                                data.find((p) => p.id === option?.value) ||
+                                null;
+                              setSelectedProvince(prov);
+                              setSelectedAmphoe(null);
+                              setSelectedDistrict(null);
+                              residentForm.setValue(
+                                "province",
+                                option?.label || ""
+                              );
+                              residentForm.setValue("district", "");
+                              residentForm.setValue("subDistrict", "");
+                            }}
+                            placeholder="เลือกจังหวัด"
+                            isClearable
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={residentForm.control}
+                    name="district"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>อำเภอ/เขต</FormLabel>
+                        <FormControl>
+                          <MySelect
+                            {...field}
+                            options={amphoeOptions}
+                            value={
+                              selectedAmphoe
+                                ? {
+                                    value: selectedAmphoe.id,
+                                    label: selectedAmphoe.name_th,
+                                  }
+                                : null
+                            }
+                            onChange={(option) => {
+                              if (!selectedProvince) return;
+                              const amp =
+                                selectedProvince.amphoes.find(
+                                  (a) => a.id === option?.value
+                                ) || null;
+                              setSelectedAmphoe(amp);
+                              setSelectedDistrict(null);
+                              residentForm.setValue(
+                                "district",
+                                option?.label || ""
+                              );
+                              residentForm.setValue("subDistrict", "");
+                            }}
+                            placeholder={
+                              selectedProvince
+                                ? "เลือกอำเภอ"
+                                : "กรุณาเลือกจังหวัดก่อน"
+                            }
+                            isClearable
+                            isDisabled={!selectedProvince}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={residentForm.control}
+                    name="subDistrict"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ตำบล/แขวง</FormLabel>
+                        <FormControl>
+                          <MySelect
+                            {...field}
+                            options={districtOptions}
+                            value={
+                              selectedDistrict
+                                ? {
+                                    value: selectedDistrict.id,
+                                    label: selectedDistrict.name_th,
+                                  }
+                                : null
+                            }
+                            onChange={(option) => {
+                              if (!selectedAmphoe) return;
+                              const dist =
+                                selectedAmphoe.districts.find(
+                                  (d) => d.id === option?.value
+                                ) || null;
+                              setSelectedDistrict(dist);
+                              residentForm.setValue(
+                                "subDistrict",
+                                option?.label || ""
+                              );
+                            }}
+                            placeholder={
+                              selectedAmphoe
+                                ? "เลือกตำบล"
+                                : "กรุณาเลือกอำเภอก่อน"
+                            }
+                            isClearable
+                            isDisabled={!selectedAmphoe}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
+                  <input
+                    type="text"
+                    readOnly
+                    className="w-full border rounded px-3 py-2 bg-gray-100"
+                    value={selectedDistrict?.zip_code || ""}
+                    placeholder="รหัสไปรษณีย์"
+                  />
+                </div>
+
+                <div className="flex justify-end mt-2">
+                  <Button type="submit">บันทึกลูกห้อง</Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         )}
       </DialogContent>
     </Dialog>

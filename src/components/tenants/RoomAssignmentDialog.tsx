@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ export default function RoomAssignmentDialog({
   isLoading = false,
 }: RoomAssignmentDialogProps) {
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const { t } = useLanguage();
   const { settings } = useSystemSettings();
 
   const { data: availableRooms = [] } = useQuery({
@@ -105,13 +107,15 @@ export default function RoomAssignmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>กำหนดห้องให้ผู้เช่า</DialogTitle>
+          <DialogTitle>{t("tenants.assignRoom")}</DialogTitle>
           <DialogDescription>
-            เลือกห้องสำหรับ {tenant.first_name} {tenant.last_name}
+            {t("tenants.selectRoomFor")} {tenant.first_name} {tenant.last_name}
             {tenant.room_number && (
               <p className="text-sm text-muted-foreground mt-1">
-                ห้องปัจจุบัน:{" "}
-                <span className="font-medium">ห้อง {tenant.room_number}</span>
+                {t("tenants.currentRoom")}{" "}
+                <span className="font-medium">
+                  {t("tenants.room")} {tenant.room_number}
+                </span>
               </p>
             )}
           </DialogDescription>
@@ -120,11 +124,11 @@ export default function RoomAssignmentDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label htmlFor="room" className="text-sm font-medium">
-              เลือกห้อง (แสดงเฉพาะห้องที่มีที่ว่าง)
+              {t("tenants.selectRoomLabel")}
             </label>
             <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
               <SelectTrigger>
-                <SelectValue placeholder="เลือกห้องที่มีที่ว่าง" />
+                <SelectValue placeholder={t("tenants.selectRoomPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {availableRooms
@@ -133,9 +137,10 @@ export default function RoomAssignmentDialog({
                     <SelectItem key={room.id} value={room.id}>
                       <div className="flex items-center justify-between w-full">
                         <span>
-                          ห้อง {room.room_number} (ชั้น {room.floor})
-                        </span>
-                        <div className="flex items-center gap-2 ml-2">
+                          {t("tenants.room")} {room.room_number} (
+                          {t("tenants.floor")} {room.floor})
+                        </span> 
+                        <div className="flex items-center gap-2 ml-2 hidden">
                           <Badge
                             variant={
                               room.current_occupants === 0
@@ -144,10 +149,12 @@ export default function RoomAssignmentDialog({
                             }
                           >
                             {room.current_occupants}/
-                            {Math.max(room.capacity ?? 2, 2)} คน
+                            {Math.max(room.capacity ?? 2, 2)}{" "}
+                            {t("tenants.people")}
                           </Badge>
                           <span className="text-sm text-muted-foreground">
-                            {(settings.depositRate || 0).toLocaleString()} บาท
+                            {(settings.depositRate || 0).toLocaleString()}{" "}
+                            {t("tenants.baht")}
                           </span>
                         </div>
                       </div>
@@ -157,7 +164,7 @@ export default function RoomAssignmentDialog({
             </Select>
             {availableRooms.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                ไม่มีห้องที่มีที่ว่างในขณะนี้
+                {t("tenants.noAvailableRooms")}
               </p>
             )}
           </div>
@@ -165,13 +172,13 @@ export default function RoomAssignmentDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            ยกเลิก
+            {t("tenants.cancel")}
           </Button>
           <Button
             onClick={handleAssign}
             disabled={!selectedRoomId || isLoading}
           >
-            {isLoading ? "กำลังบันทึก..." : "กำหนดห้อง"}
+            {isLoading ? t("tenants.saving") : t("tenants.assign")}
           </Button>
         </DialogFooter>
       </DialogContent>

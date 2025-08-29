@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { useLanguage } from "@/providers/LanguageProvider";
 import { ContractPreview } from "@/components/tenants/ContractPreview";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -79,19 +81,19 @@ function transformData(): Province[] {
 }
 
 const userSchema = z.object({
-  email: z.string().email("กรุณาใส่อีเมลที่ถูกต้อง"),
-  password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
-  firstName: z.string().min(1, "กรุณาใส่ชื่อ"),
-  lastName: z.string().min(1, "กรุณาใส่นามสกุล"),
-  houseNumber: z.string().min(1, "กรุณาใส่บ้านเลขที่"),
-  village: z.string().min(1, "กรุณาใส่หมู่บ้าน"),
+  email: z.string().email("login.emailInvalid"),
+  password: z.string().min(6, "login.passwordInvalid"),
+  firstName: z.string().min(1, "profile.enterFirstName"),
+  lastName: z.string().min(1, "profile.enterLastName"),
+  houseNumber: z.string().min(1, "staff.houseNumber"),
+  village: z.string().min(1, "staff.village"),
   street: z.string().optional(),
-  subDistrict: z.string().min(1, "กรุณาใส่ตำบล/แขวง"),
-  district: z.string().min(1, "กรุณาใส่อำเภอ/เขต"),
-  province: z.string().min(1, "กรุณาใส่จังหวัด"),
+  subDistrict: z.string().min(1, "staff.subDistrict"),
+  district: z.string().min(1, "staff.district"),
+  province: z.string().min(1, "staff.province"),
   phone: z.string().optional(),
   role: z.enum(["admin", "staff", "tenant"]),
-  roomId: z.string().min(1, "กรุณาเลือกห้องว่าง"),
+  roomId: z.string().min(1, "userCreate.roomSelection"),
   zip_code: z.string().optional(),
 });
 
@@ -132,6 +134,8 @@ export const UserCreateDialog = ({
     (UserFormData & { address?: string }) | null
   >(null);
   const { session, user } = useAuth();
+  const { settings } = useSystemSettings();
+  const { t } = useLanguage();
   const contractRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const data = useMemo(() => transformData(), []);
@@ -193,7 +197,6 @@ export const UserCreateDialog = ({
           };
         })
       );
-      // กรองเฉพาะห้องที่ไม่มีคนเช่าเลย (current_occupants === 0) และสถานะเป็น vacant
       return roomsWithOccupancy.filter((room) => {
         return room.status === "vacant" && room.current_occupants === 0;
       });
@@ -204,24 +207,26 @@ export const UserCreateDialog = ({
   const getRoomInfoById = (roomId: string) => {
     const room = availableRooms.find((r) => r.id === roomId);
     return room
-      ? { room_number: room.room_number, price: room.price }
-      : { room_number: "ไม่พบเลขห้อง", price: 0 };
+      ? { room_number: room.room_number, price: settings.depositRate || 0 }
+      : { room_number: t("userCreate.roomNotFound"), price: 0 };
   };
 
   const handleFormSubmit = (data: UserFormData) => {
-    const streetPart = data.street ? `ถนน ${data.street} ` : "ถนน -";
-    const fullAddress = `บ้านเลขที่ ${data.houseNumber} หมู่ที่ ${data.village} ${streetPart} ตำบล ${data.subDistrict} อำเภอ ${data.district} จังหวัด ${data.province} รหัสไปรษณีย์ ${selectedDistrict?.zip_code}  `;
+    const streetPart = data.street
+      ? `${t("staff.street")} ${data.street} `
+      : `${t("staff.street")} -`;
+    const fullAddress = `${t("staff.houseNumber")} ${data.houseNumber} ${t("staff.village")} ${data.village} ${streetPart} ${t("staff.subDistrict")} ${data.subDistrict} ${t("staff.district")} ${data.district} ${t("staff.province")} ${data.province} ${t("staff.zipCode")} ${selectedDistrict?.zip_code}  `;
     setFormData({ ...data, address: fullAddress });
     setStep("review");
   };
 
   const handleConfirmAndSave = async () => {
     if (!formData || !session?.access_token) {
-      toast.error("ไม่พบ session หรือข้อมูลไม่ครบ");
+      toast.error(t("userCreate.sessionError"));
       return;
     }
     if (user?.role !== "admin") {
-      toast.error("คุณไม่มีสิทธิ์ในการสร้างบัญชีผู้ใช้ใหม่");
+      toast.error(t("userCreate.permissionError"));
       return;
     }
 
@@ -234,12 +239,12 @@ export const UserCreateDialog = ({
         .eq("is_current", true);
 
     if (occupancyCheckError) {
-      toast.error("ไม่สามารถตรวจสอบสถานะห้องได้");
+      toast.error(t("userCreate.roomCheckError"));
       return;
     }
 
     if (currentOccupancy && currentOccupancy.length > 0) {
-      toast.error("ห้องที่เลือกมีคนเช่าแล้ว กรุณาเลือกห้องอื่น");
+      toast.error(t("userCreate.roomOccupiedError"));
       return;
     }
 
@@ -265,14 +270,14 @@ export const UserCreateDialog = ({
 
       if (error || result?.error) {
         toast.error(
-          result?.error || error?.message || "ไม่สามารถสร้างผู้ใช้ได้"
+          result?.error || error?.message || t("userCreate.createUserError")
         );
         setLoading(false);
         return;
       }
       const userId = result?.user?.id;
       if (!userId) {
-        toast.error("ไม่สามารถดึง user id ได้");
+        toast.error(t("userCreate.userIdError"));
         setLoading(false);
         return;
       }
@@ -287,7 +292,7 @@ export const UserCreateDialog = ({
           phone: formData.phone,
           address: formData.address,
           emergency_contact: "",
-          residents: "ผู้เช่า",
+          residents: t("profile.tenant"),
           room_number: roomInfo.room_number,
           image: " ",
           room_id: formData.roomId,
@@ -296,7 +301,7 @@ export const UserCreateDialog = ({
         .select("id")
         .single();
       if (tenantError || !tenantData?.id) {
-        toast.error("สร้างผู้ใช้สำเร็จ แต่เพิ่มผู้เช่าไม่สำเร็จ");
+        toast.error(t("userCreate.tenantError"));
         setLoading(false);
         return;
       }
@@ -312,7 +317,7 @@ export const UserCreateDialog = ({
         .from("occupancy")
         .insert(occupancyInsert);
       if (occupancyError) {
-        toast.error("สร้าง tenant สำเร็จ แต่เพิ่มข้อมูล occupancy ไม่สำเร็จ");
+        toast.error(t("userCreate.occupancyError"));
         setLoading(false);
         return;
       }
@@ -323,7 +328,7 @@ export const UserCreateDialog = ({
         .update({ status: "occupied" })
         .eq("id", formData.roomId);
       if (roomUpdateError) {
-        toast.error("สร้างผู้ใช้สำเร็จ แต่ไม่สามารถอัปเดตสถานะห้องได้");
+        toast.error(t("userCreate.roomUpdateError"));
         setLoading(false);
         return;
       }
@@ -337,14 +342,14 @@ export const UserCreateDialog = ({
         updated_at: new Date().toISOString(),
       });
       if (profileError) {
-        toast.error("สร้างผู้ใช้สำเร็จ แต่เพิ่มโปรไฟล์ไม่สำเร็จ");
+        toast.error(t("userCreate.profileError"));
         setLoading(false);
         return;
       }
 
       // 6. สร้างและอัปโหลด PDF ไปยัง API insertimage (base64)
       if (!contractRef.current) {
-        toast.error("ไม่พบ ref สัญญา");
+        toast.error(t("userCreate.contractRefError"));
         setLoading(false);
         return;
       }
@@ -411,14 +416,11 @@ export const UserCreateDialog = ({
         );
         const result = await response.json();
         if (result.status === 200) {
-          toast.success(
-            "สร้างบัญชีผู้ใช้และบันทึก PDF ไปยัง Supabase Storage เรียบร้อย!"
-          );
+          toast.success(t("userCreate.success"));
           form.reset();
           setFormData(null);
           setStep("form");
           onOpenChange(false);
-          // เพิ่ม invalidate queries เพื่อรีเฟรชข้อมูล
           queryClient.invalidateQueries({ queryKey: ["tenants"] });
           queryClient.invalidateQueries({ queryKey: ["rooms"] });
           queryClient.invalidateQueries({ queryKey: ["occupancy"] });
@@ -428,14 +430,14 @@ export const UserCreateDialog = ({
           onSuccess?.();
         } else {
           toast.error(
-            "สร้างบัญชีสำเร็จ แต่อัปโหลด PDF ไม่สำเร็จ: " + result.message
+            t("userCreate.uploadPdfError") + ": " + result.message
           );
         }
         setLoading(false);
       };
       reader.readAsDataURL(pdfBlob);
     } catch (err: any) {
-      toast.error("เกิดข้อผิดพลาด: " + err.message);
+      toast.error(t("userCreate.unknownError") + ": " + err.message);
       setLoading(false);
     }
   };
@@ -450,7 +452,7 @@ export const UserCreateDialog = ({
       >
         <DialogHeader>
           <DialogTitle>
-            {step === "form" ? "สร้างบัญชีผู้ใช้ใหม่" : "ตรวจสอบก่อนยืนยัน"}
+            {step === "form" ? t("userCreate.title") : t("userCreate.review")}
           </DialogTitle>
         </DialogHeader>
         {step === "form" && (
@@ -465,9 +467,9 @@ export const UserCreateDialog = ({
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ชื่อ</FormLabel>
+                      <FormLabel>{t("userCreate.firstName")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="ชื่อ" {...field} />
+                        <Input placeholder={t("userCreate.firstName")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -478,9 +480,9 @@ export const UserCreateDialog = ({
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>นามสกุล</FormLabel>
+                      <FormLabel>{t("userCreate.lastName")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="นามสกุล" {...field} />
+                        <Input placeholder={t("userCreate.lastName")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -492,9 +494,9 @@ export const UserCreateDialog = ({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>อีเมล</FormLabel>
+                    <FormLabel>{t("userCreate.email")}</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="อีเมล" {...field} />
+                      <Input type="email" placeholder={t("userCreate.email")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -506,9 +508,9 @@ export const UserCreateDialog = ({
                   name="houseNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>บ้านเลขที่</FormLabel>
+                      <FormLabel>{t("userCreate.houseNumber")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="บ้านเลขที่" {...field} />
+                        <Input placeholder={t("userCreate.houseNumber")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -519,9 +521,9 @@ export const UserCreateDialog = ({
                   name="village"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>หมู่ที่</FormLabel>
+                      <FormLabel>{t("userCreate.village")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="หมู่ที่" {...field} />
+                        <Input placeholder={t("userCreate.village")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -534,9 +536,9 @@ export const UserCreateDialog = ({
                   name="street"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ถนน</FormLabel>
+                      <FormLabel>{t("userCreate.street")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="ถนน" {...field} />
+                        <Input placeholder={t("userCreate.street")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -547,7 +549,7 @@ export const UserCreateDialog = ({
                   name="province"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>จังหวัด</FormLabel>
+                      <FormLabel>{t("userCreate.province")}</FormLabel>
                       <FormControl>
                         <MySelect
                           {...field}
@@ -570,7 +572,7 @@ export const UserCreateDialog = ({
                             form.setValue("district", "");
                             form.setValue("subDistrict", "");
                           }}
-                          placeholder="เลือกจังหวัด"
+                          placeholder={t("userCreate.province")}
                           isClearable
                         />
                       </FormControl>
@@ -586,7 +588,7 @@ export const UserCreateDialog = ({
                   name="district"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>อำเภอ/เขต</FormLabel>
+                      <FormLabel>{t("userCreate.district")}</FormLabel>
                       <FormControl>
                         <MySelect
                           {...field}
@@ -612,8 +614,8 @@ export const UserCreateDialog = ({
                           }}
                           placeholder={
                             selectedProvince
-                              ? "เลือกอำเภอ"
-                              : "กรุณาเลือกจังหวัดก่อน"
+                              ? t("userCreate.district")
+                              : t("userCreate.selectProvinceFirst")
                           }
                           isClearable
                           isDisabled={!selectedProvince}
@@ -629,7 +631,7 @@ export const UserCreateDialog = ({
                   name="subDistrict"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ตำบล/แขวง</FormLabel>
+                      <FormLabel>{t("userCreate.subDistrict")}</FormLabel>
                       <FormControl>
                         <MySelect
                           {...field}
@@ -652,7 +654,9 @@ export const UserCreateDialog = ({
                             form.setValue("subDistrict", option?.label || "");
                           }}
                           placeholder={
-                            selectedAmphoe ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"
+                            selectedAmphoe
+                              ? t("userCreate.subDistrict")
+                              : t("userCreate.selectDistrictFirst")
                           }
                           isClearable
                           isDisabled={!selectedAmphoe}
@@ -664,13 +668,13 @@ export const UserCreateDialog = ({
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
+                <label className="block mb-1 font-medium">{t("userCreate.zipCode")}</label>
                 <input
                   type="text"
                   readOnly
                   className="w-full border rounded px-3 py-2 bg-gray-100"
                   value={selectedDistrict?.zip_code || ""}
-                  placeholder="รหัสไปรษณีย์"
+                  placeholder={t("userCreate.zipCode")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 items-end">
@@ -679,18 +683,18 @@ export const UserCreateDialog = ({
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>เบอร์โทร (ไม่บังคับ)</FormLabel>
+                      <FormLabel>{t("userCreate.phoneOptional")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="เบอร์โทร" {...field} />
+                        <Input placeholder={t("userCreate.phoneOptional")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormItem>
-                  <FormLabel>บทบาท</FormLabel>
+                  <FormLabel>{t("userCreate.role")}</FormLabel>
                   <span className="block py-2 px-3 rounded bg-muted text-muted-foreground">
-                    ผู้เช่า (Tenant)
+                    {t("userCreate.roleTenant")}
                   </span>
                   <input type="hidden" name="role" value="tenant" />
                 </FormItem>
@@ -700,7 +704,7 @@ export const UserCreateDialog = ({
                 name="roomId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>เลือกห้องว่าง (ไม่มีคนเช่า)</FormLabel>
+                    <FormLabel>{t("userCreate.roomSelection")}</FormLabel>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -709,26 +713,27 @@ export const UserCreateDialog = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="เลือกห้องว่างที่ไม่มีคนเช่า" />
+                          <SelectValue placeholder={t("userCreate.roomSelectionPlaceholder")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
                         {availableRooms.length === 0 ? (
                           <div className="px-3 py-2 text-muted-foreground text-sm">
-                            ไม่มีห้องว่างที่ไม่มีคนเช่า
+                            {t("userCreate.noVacantRooms")}
                           </div>
                         ) : (
                           availableRooms.map((room) => (
                             <SelectItem key={room.id} value={room.id}>
                               <div className="flex items-center justify-between w-full">
                                 <span>
-                                  ห้อง {room.room_number} - {room.room_type}{" "}
-                                  (ชั้น {room.floor})
+                                  {t("rooms.room")} {room.room_number} - {room.room_type}{" "}
+                                  ({t("rooms.floor")} {room.floor})
                                 </span>
                                 <div className="flex items-center gap-2 ml-2">
-                                  <Badge variant="secondary">ว่าง</Badge>
+                                  <Badge variant="secondary">{t("userCreate.roomStatus")}</Badge>
                                   <span className="text-sm text-muted-foreground">
-                                    {room.price.toLocaleString()} บาท/เดือน
+                                    {(settings.depositRate || 0).toLocaleString()}{" "}
+                                    {t("userCreate.roomPrice")}
                                   </span>
                                 </div>
                               </div>
@@ -746,12 +751,12 @@ export const UserCreateDialog = ({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>รหัสผ่าน</FormLabel>
+                    <FormLabel>{t("userCreate.password")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           type={showPassword ? "text" : "password"}
-                          placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)"
+                          placeholder={t("userCreate.password")}
                           {...field}
                         />
                         <button
@@ -772,7 +777,7 @@ export const UserCreateDialog = ({
                 )}
               />
               <div className="flex justify-end pt-4">
-                <Button type="submit">ถัดไป</Button>
+                <Button type="submit">{t("userCreate.next")}</Button>
               </div>
             </form>
           </Form>
@@ -808,17 +813,17 @@ export const UserCreateDialog = ({
                       month: "long",
                       year: "numeric",
                     })}
-                    contractPlace="หอพักบ้านพุทธชาติ นครปฐม"
+                    contractPlace={t("contract.place")}
                   />
                 </div>
               );
             })()}
             <div className="flex justify-end gap-2 pt-4">
               <Button onClick={handleConfirmAndSave} disabled={loading}>
-                {loading ? "กำลังสร้าง..." : "ยืนยันลงชื่อและสร้างบัญชี"}
+                {loading ? t("userCreate.creating") : t("userCreate.confirm")}
               </Button>
               <Button variant="outline" onClick={() => setStep("form")}>
-                ย้อนกลับ
+                {t("userCreate.back")}
               </Button>
             </div>
           </div>

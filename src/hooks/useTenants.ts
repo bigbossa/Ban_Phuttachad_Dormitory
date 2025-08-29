@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers/AuthProvider";
+import { useLanguage } from "@/providers/LanguageProvider";
 import type { Database } from "@/integrations/supabase/types";
 import { Action } from "@radix-ui/react-toast";
 
@@ -33,6 +34,7 @@ export const useTenants = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, session } = useAuth();
+  const { t } = useLanguage();
 
   const {
     data: tenants = [],
@@ -680,15 +682,15 @@ export const useTenants = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["system-stats"] });
       toast({
-        title: "สำเร็จ",
-        description: "กำหนดห้องให้ผู้เช่าเรียบร้อยแล้ว",
+        title: t("tenants.success"),
+        description: t("tenants.roomAssignedSuccess"),
       });
     },
 
     onError: (error) => {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: error.message || "ไม่สามารถกำหนดห้องได้",
+        title: t("tenants.error"),
+        description: error.message || t("tenants.cannotAssignRoom"),
         variant: "destructive",
       });
     },

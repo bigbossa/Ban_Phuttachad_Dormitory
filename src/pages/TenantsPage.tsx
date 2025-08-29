@@ -234,15 +234,15 @@ const TenantsPage = ({ children }) => {
         onOpenChange={setCreateUserOpen}
       />
 
-      <div className="animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">{t("tenants.management")}</h1>
-            <p className="text-muted-foreground">
-              {t("tenants.managementDesc")}
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0">
+      <div className="space-y-6">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold">{t("tenants.management")}</h1>
+              <p className="text-muted-foreground">
+                {t("tenants.managementDesc")}
+              </p>
+            </div>
             <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
               <Button
                 onClick={() => {
@@ -562,7 +562,7 @@ const TenantsPage = ({ children }) => {
                                     }}
                                   >
                                     <Home className="mr-2 h-4 w-4" />
-                                    ย้ายห้อง
+                                    {t("tenants.moveRoom")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -606,16 +606,17 @@ const TenantsPage = ({ children }) => {
           tenant={editingTenant}
           room_id={selectedRoom?.id || ""}
           room_number={selectedRoom?.room_number || ""}
-          isLoading={isCreating || isUpdating}
+          capacity={roomCapacityMap[selectedRoom?.id] || 2}
+          occupantCount={occupancyMap[selectedRoom?.id] || 0}
         />
 
         <RentedchildFormDialog
           open={isRentedChildFormOpen}
           onOpenChange={setIsRentedChildFormOpen}
-          tenant={editingTenant}
           room_id={selectedRoom?.id || ""}
           room_number={selectedRoom?.room_number || ""}
-          isLoading={isCreating || isUpdating}
+          capacity={roomCapacityMap[selectedRoom?.id] || 2}
+          occupantCount={occupancyMap[selectedRoom?.id] || 0}
         />
 
         <TenantDetailsDialog
