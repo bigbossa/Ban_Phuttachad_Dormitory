@@ -323,257 +323,275 @@ const TenantsPage = ({ children }) => {
                         return acc;
                       }, {});
 
-                      return Object.entries(tenantsByRoom).map(
-                        ([roomId, tenants]) => {
-                          const firstTenant =
-                            tenants.find((t) => t.residents === "ผู้เช่า") ||
-                            tenants[0];
-                          const roomInfo = firstTenant.current_room;
-                          const currentOccupants = occupancyMap[roomId] || 0;
-                          const roomCapacity = roomCapacityMap[roomId] || 0;
-                          const isRoomFull = currentOccupants >= roomCapacity;
+                      // เรียงลำดับตามเลขห้อง
+                      const sortedRooms = Object.entries(tenantsByRoom).sort(
+                        ([, tenantsA], [, tenantsB]) => {
+                          const roomA = tenantsA.find(
+                            (t) => t.residents === "ผู้เช่า"
+                          )?.current_room;
+                          const roomB = tenantsB.find(
+                            (t) => t.residents === "ผู้เช่า"
+                          )?.current_room;
 
-                          return (
-                            <TableRow key={roomId}>
-                              <TableCell>
-                                <div className="flex flex-col gap-4 max-h-48 overflow-y-auto">
-                                  {["ผู้เช่า", "ลูกเช่า"].map((type) => {
-                                    const filtered = tenants.filter(
-                                      (t) => t.residents === type
-                                    );
-                                    if (filtered.length === 0) return null;
-                                    return (
-                                      <div key={type}>
-                                        <h6 className="text-sx font-semibold text-primary mt-2">
-                                          {type === "ผู้เช่า"
-                                            ? t("tenants.main")
-                                            : t("tenants.child")}
-                                        </h6>
-                                        {filtered.map((tenant) => {
-                                          const fullName = `${tenant.first_name} ${tenant.last_name}`;
-                                          return (
-                                            <div
-                                              key={tenant.id}
-                                              className="flex items-center gap-3"
-                                            >
-                                              <Avatar>
-                                                <AvatarImage
-                                                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`}
-                                                  alt={fullName}
-                                                />
-                                                <AvatarFallback>
-                                                  {tenant.first_name.charAt(0)}
-                                                  {tenant.last_name.charAt(0)}
-                                                </AvatarFallback>
-                                              </Avatar>
-                                              <div>
-                                                <p className="font-medium">
-                                                  {fullName}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                  {tenant.email}
-                                                </p>
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </TableCell>
+                          // ถ้าไม่มีห้อง ให้เรียงไว้ท้ายสุด
+                          if (!roomA && !roomB) return 0;
+                          if (!roomA) return 1;
+                          if (!roomB) return -1;
 
-                              <TableCell>
-                                <div className="flex flex-col gap-4">
-                                  {["ผู้เช่า", "ลูกเช่า"].map((type) => {
-                                    const filtered = tenants.filter(
-                                      (t) => t.residents === type
-                                    );
-                                    if (filtered.length === 0) return null;
-                                    return (
-                                      <div key={type}>
-                                        {filtered.map((t) => (
-                                          <p key={t.id} className="text-sm">
-                                            {t.phone || "-"}
-                                            {type === "ลูกเช่า" && (
-                                              <span className="text-xs text-muted-foreground ml-2"></span>
-                                            )}
-                                          </p>
-                                        ))}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </TableCell>
+                          // เรียงตามเลขห้อง (แปลงเป็นตัวเลขเพื่อเรียงลำดับที่ถูกต้อง)
+                          const roomNumberA = parseInt(roomA.room_number) || 0;
+                          const roomNumberB = parseInt(roomB.room_number) || 0;
+                          return roomNumberA - roomNumberB;
+                        }
+                      );
 
-                              <TableCell>
-                                {roomInfo ? (
-                                  <div className="flex items-center gap-2">
-                                    <Home className="h-4 w-4 text-muted-foreground" />
-                                    <div>
-                                      <Badge
-                                        variant="secondary"
-                                        className="text-xs"
-                                      >
-                                        {t("tenants.room")}{" "}
-                                        {roomInfo.room_number}
-                                      </Badge>
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {t("tenants.floor")} {roomInfo.floor}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground">
-                                    {t("tenants.notRented")}
-                                  </span>
-                                )}
-                              </TableCell>
+                      return sortedRooms.map(([roomId, tenants]) => {
+                        const firstTenant =
+                          tenants.find((t) => t.residents === "ผู้เช่า") ||
+                          tenants[0];
+                        const roomInfo = firstTenant.current_room;
+                        const currentOccupants = occupancyMap[roomId] || 0;
+                        const roomCapacity = roomCapacityMap[roomId] || 0;
+                        const isRoomFull = currentOccupants >= roomCapacity;
 
-                              <TableCell className="max-w-[150px] truncate">
-                                <div className="flex flex-col gap-4">
-                                  {["ผู้เช่า", "ลูกเช่า"].map((type) => {
-                                    const filtered = tenants.filter(
-                                      (t) => t.residents === type
-                                    );
-                                    if (filtered.length === 0) return null;
-                                    return (
-                                      <div key={type}>
-                                        {filtered.map((t) => (
-                                          <p
-                                            key={t.id}
-                                            className="text-sm truncate"
+                        return (
+                          <TableRow key={roomId}>
+                            <TableCell>
+                              <div className="flex flex-col gap-4 max-h-48 overflow-y-auto">
+                                {["ผู้เช่า", "ลูกเช่า"].map((type) => {
+                                  const filtered = tenants.filter(
+                                    (t) => t.residents === type
+                                  );
+                                  if (filtered.length === 0) return null;
+                                  return (
+                                    <div key={type}>
+                                      <h6 className="text-sx font-semibold text-primary mt-2">
+                                        {type === "ผู้เช่า"
+                                          ? t("tenants.main")
+                                          : t("tenants.child")}
+                                      </h6>
+                                      {filtered.map((tenant) => {
+                                        const fullName = `${tenant.first_name} ${tenant.last_name}`;
+                                        return (
+                                          <div
+                                            key={tenant.id}
+                                            className="flex items-center gap-3"
                                           >
-                                            {t.address || "-"}
-                                            {type === "ลูกเช่า" && (
-                                              <span className="text-xs text-muted-foreground ml-2"></span>
-                                            )}
-                                          </p>
-                                        ))}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </TableCell>
+                                            <Avatar>
+                                              <AvatarImage
+                                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`}
+                                                alt={fullName}
+                                              />
+                                              <AvatarFallback>
+                                                {tenant.first_name.charAt(0)}
+                                                {tenant.last_name.charAt(0)}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                              <p className="font-medium">
+                                                {fullName}
+                                              </p>
+                                              <p className="text-sm text-muted-foreground">
+                                                {tenant.email}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </TableCell>
 
-                              <TableCell>
-                                <div className="flex flex-col gap-4">
-                                  {["ผู้เช่า", "ลูกเช่า"].map((type) => {
-                                    const filtered = tenants.filter(
-                                      (t) => t.residents === type
-                                    );
-                                    if (filtered.length === 0) return null;
-                                    return (
-                                      <div key={type}>
-                                        {filtered.map((t) => (
-                                          <p key={t.id} className="text-sm">
-                                            {new Date(
-                                              t.created_at!
-                                            ).toLocaleDateString("th-TH")}
-                                            {type === "ลูกเช่า" && (
-                                              <span className="text-xs text-muted-foreground ml-2"></span>
-                                            )}
-                                          </p>
-                                        ))}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0"
+                            <TableCell>
+                              <div className="flex flex-col gap-4">
+                                {["ผู้เช่า", "ลูกเช่า"].map((type) => {
+                                  const filtered = tenants.filter(
+                                    (t) => t.residents === type
+                                  );
+                                  if (filtered.length === 0) return null;
+                                  return (
+                                    <div key={type}>
+                                      {filtered.map((t) => (
+                                        <p key={t.id} className="text-sm">
+                                          {t.phone || "-"}
+                                          {type === "ลูกเช่า" && (
+                                            <span className="text-xs text-muted-foreground ml-2"></span>
+                                          )}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              {roomInfo ? (
+                                <div className="flex items-center gap-2">
+                                  <Home className="h-4 w-4 text-muted-foreground" />
+                                  <div>
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
                                     >
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
+                                      {t("tenants.room")} {roomInfo.room_number}
+                                    </Badge>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {t("tenants.floor")} {roomInfo.floor}
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  {t("tenants.notRented")}
+                                </span>
+                              )}
+                            </TableCell>
+
+                            <TableCell className="max-w-[150px] truncate">
+                              <div className="flex flex-col gap-4">
+                                {["ผู้เช่า", "ลูกเช่า"].map((type) => {
+                                  const filtered = tenants.filter(
+                                    (t) => t.residents === type
+                                  );
+                                  if (filtered.length === 0) return null;
+                                  return (
+                                    <div key={type}>
+                                      {filtered.map((t) => (
+                                        <p
+                                          key={t.id}
+                                          className="text-sm truncate"
+                                        >
+                                          {t.address || "-"}
+                                          {type === "ลูกเช่า" && (
+                                            <span className="text-xs text-muted-foreground ml-2"></span>
+                                          )}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              <div className="flex flex-col gap-4">
+                                {["ผู้เช่า", "ลูกเช่า"].map((type) => {
+                                  const filtered = tenants.filter(
+                                    (t) => t.residents === type
+                                  );
+                                  if (filtered.length === 0) return null;
+                                  return (
+                                    <div key={type}>
+                                      {filtered.map((t) => (
+                                        <p key={t.id} className="text-sm">
+                                          {new Date(
+                                            t.created_at!
+                                          ).toLocaleDateString("th-TH")}
+                                          {type === "ลูกเช่า" && (
+                                            <span className="text-xs text-muted-foreground ml-2"></span>
+                                          )}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleViewDetails(firstTenant)
+                                    }
+                                  >
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    {t("view_details")}
+                                  </DropdownMenuItem>
+                                  {!isRoomFull && firstTenant.current_room && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setSelectedRoom({
+                                          id: firstTenant.current_room.id,
+                                          room_number:
+                                            firstTenant.current_room
+                                              .room_number,
+                                        });
+                                        setEditingTenant(firstTenant);
+                                        setIsFormOpen(false);
+                                        setIsRentedChildFormOpen(true);
+                                      }}
+                                    >
+                                      <UserPlus className="mr-2 h-4 w-4" />
+                                      {t("tenants.addChild")}
+                                    </DropdownMenuItem>
+                                  )}
+                                  {firstTenant.image && (
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleViewDetails(firstTenant)
+                                        handleViewContractImage(firstTenant)
                                       }
                                     >
                                       <Eye className="mr-2 h-4 w-4" />
-                                      {t("view_details")}
+                                      {t("tenants.viewContractImage")}
                                     </DropdownMenuItem>
-                                    {!isRoomFull &&
-                                      firstTenant.current_room && (
-                                        <DropdownMenuItem
-                                          onClick={() => {
-                                            setSelectedRoom({
-                                              id: firstTenant.current_room.id,
-                                              room_number:
-                                                firstTenant.current_room
-                                                  .room_number,
-                                            });
-                                            setEditingTenant(firstTenant);
-                                            setIsFormOpen(false);
-                                            setIsRentedChildFormOpen(true);
-                                          }}
-                                        >
-                                          <UserPlus className="mr-2 h-4 w-4" />
-                                          {t("tenants.addChild")}
-                                        </DropdownMenuItem>
-                                      )}
-                                    {firstTenant.image && (
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleViewContractImage(firstTenant)
-                                        }
-                                      >
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        {t("tenants.viewContractImage")}
-                                      </DropdownMenuItem>
-                                    )}
+                                  )}
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleEditTenant(firstTenant)
+                                    }
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    {t("edit")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedTenant(firstTenant);
+                                      setIsRoomAssignOpen(true);
+                                    }}
+                                  >
+                                    <Home className="mr-2 h-4 w-4" />
+                                    ย้ายห้อง
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleDeleteTenant(firstTenant)
+                                    }
+                                    className="text-destructive"
+                                    disabled={isDeleting}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    {t("tenants.delete")}
+                                  </DropdownMenuItem>
+                                  {tenants.length > 1 && (
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleEditTenant(firstTenant)
-                                      }
-                                    >
-                                      <Edit className="mr-2 h-4 w-4" />
-                                      {t("edit")}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() => {
-                                        setSelectedTenant(firstTenant);
-                                        setIsRoomAssignOpen(true);
-                                      }}
-                                    >
-                                      <Home className="mr-2 h-4 w-4" />
-                                      ย้ายห้อง
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        handleDeleteTenant(firstTenant)
+                                        handleDeleteRentedchild(firstTenant)
                                       }
                                       className="text-destructive"
                                       disabled={isDeleting}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
-                                      {t("tenants.delete")}
+                                      {t("tenants.deleteChild")}
                                     </DropdownMenuItem>
-                                    {tenants.length > 1 && (
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleDeleteRentedchild(firstTenant)
-                                        }
-                                        className="text-destructive"
-                                        disabled={isDeleting}
-                                      >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        {t("tenants.deleteChild")}
-                                      </DropdownMenuItem>
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        }
-                      );
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      });
                     })()
                   )}
                 </TableBody>
