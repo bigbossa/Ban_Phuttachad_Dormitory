@@ -48,7 +48,7 @@ export default function RoomDetailsDialog({
   const [loading, setLoading] = useState(false);
 
   const { settings } = useSystemSettings();
-  const roomRent = room.price ?? (settings.depositRate || 0);
+  const roomRent = settings.depositRate || 0;
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -165,7 +165,7 @@ export default function RoomDetailsDialog({
               <Banknote className="h-4 w-4" /> {t("rooms.rent")}
             </span>
             <span className="text-sm font-bold text-green-600">
-              {formatPrice(room.price)}
+              {formatPrice(roomRent)}
             </span>
           </div>
 

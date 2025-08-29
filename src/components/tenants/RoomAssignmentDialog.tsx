@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 type Tenant = Database["public"]["Tables"]["tenants"]["Row"];
 
@@ -49,6 +50,7 @@ export default function RoomAssignmentDialog({
   isLoading = false,
 }: RoomAssignmentDialogProps) {
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const { settings } = useSystemSettings();
 
   const { data: availableRooms = [] } = useQuery({
     queryKey: ["available-rooms-with-capacity"],
@@ -145,7 +147,7 @@ export default function RoomAssignmentDialog({
                             {Math.max(room.capacity ?? 2, 2)} คน
                           </Badge>
                           <span className="text-sm text-muted-foreground">
-                            {room.price.toLocaleString()} บาท
+                            {(settings.depositRate || 0).toLocaleString()} บาท
                           </span>
                         </div>
                       </div>

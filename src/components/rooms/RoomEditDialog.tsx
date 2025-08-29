@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 type Room = {
   id: string;
@@ -41,6 +42,7 @@ export default function RoomEditDialog({
 }: RoomEditDialogProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { settings } = useSystemSettings();
   const [editRoom, setEditRoom] = useState<Room>({ ...room, capacity: 2 });
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -98,7 +100,7 @@ export default function RoomEditDialog({
         room_number: editRoom.room_number,
         room_type: room.room_type, // ใช้ข้อมูลเดิม
         status: room.status, // ใช้ข้อมูลเดิม
-        price: room.price, // ใช้ข้อมูลเดิม
+        price: settings.depositRate || 0, // ใช้ค่าจากการตั้งค่า
         capacity: room.capacity, // ใช้ข้อมูลเดิม
         floor: editRoom.floor,
         updated_at: new Date().toISOString(),

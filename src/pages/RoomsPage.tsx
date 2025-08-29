@@ -152,7 +152,6 @@ export default function RoomsPage() {
       !newRoom.room_number ||
       !newRoom.room_type ||
       !newRoom.status ||
-      newRoom.price === undefined ||
       newRoom.capacity === undefined ||
       newRoom.floor === undefined
     ) {
@@ -166,7 +165,12 @@ export default function RoomsPage() {
     try {
       const { data, error } = await supabase
         .from("rooms")
-        .insert([newRoom])
+        .insert([
+          {
+            ...newRoom,
+            price: settings.depositRate || 0,
+          },
+        ])
         .select()
         .single();
 
@@ -184,7 +188,7 @@ export default function RoomsPage() {
         room_number: "",
         room_type: "Standard Double",
         status: "vacant",
-        price: roomRent,
+        price: settings.depositRate || 0,
         capacity: 2,
         floor: 1,
       });
@@ -329,7 +333,7 @@ export default function RoomsPage() {
                     id="price"
                     type="number"
                     placeholder={t("rooms.rent")}
-                    value={newRoom.price}
+                    value={settings.depositRate || 0}
                     disabled
                   />
                 </div>
@@ -418,7 +422,9 @@ export default function RoomsPage() {
                       {t(`satatus.${room.status}`)}
                     </span>
                   </TableCell>
-                  <TableCell>{formatPrice(room.price)}</TableCell>
+                  <TableCell>
+                    {formatPrice(settings.depositRate || 0)}
+                  </TableCell>
                   <TableCell>{room.floor}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -468,7 +474,7 @@ export default function RoomsPage() {
                             {room.status === "vacant" && (
                               <>
                                 <DropdownMenuLabel>
-                                {t("Process_status")}
+                                  {t("Process_status")}
                                 </DropdownMenuLabel>
                                 {/* <DropdownMenuItem onClick={() => handleChangeRoomStatus(room.id, "occupied")}>
                                     Set as Occupied
