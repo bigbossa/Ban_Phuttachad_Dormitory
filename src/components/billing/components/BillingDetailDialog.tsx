@@ -6,7 +6,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import BillingStatusBadge from "../BillingStatusBadge";
 import { Button } from "@/components/ui/button";
@@ -44,10 +50,10 @@ interface BillingDetailDialogProps {
   billing: BillingRecord | null;
 }
 
-export default function BillingDetailDialog({ 
-  open, 
-  onOpenChange, 
-  billing 
+export default function BillingDetailDialog({
+  open,
+  onOpenChange,
+  billing,
 }: BillingDetailDialogProps) {
   const { t } = useLanguage();
   if (!billing) return null;
@@ -61,22 +67,27 @@ export default function BillingDetailDialog({
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
+    return new Intl.NumberFormat("th-TH", {
+      style: "currency",
+      currency: "THB",
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('th-TH');
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const formatMonth = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('th-TH', { 
-      year: 'numeric', 
-      month: 'long' 
-    });
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   return (
@@ -86,16 +97,28 @@ export default function BillingDetailDialog({
           <div className="flex items-center justify-between w-full">
             <div>
               <DialogTitle className="flex items-center gap-2">
-                {t("billing.detailTitle")} - {formatMonth(billing.billing_month)}
+                {t("billing.detailTitle")} -{" "}
+                {formatMonth(billing.billing_month)}
                 <BillingStatusBadge status={billing.status} />
               </DialogTitle>
               <DialogDescription asChild>
                 <div className="space-y-1">
-                  <p>{t("billing.receiptNumber")}: {billing.receipt_number || '-'}</p>
-                  <p>{t("billing.forRoom")} {billing.rooms.room_number} - {fullname}</p>
+                  <p>
+                    {t("billing.receiptNumber")}:{" "}
+                    {billing.receipt_number || "-"}
+                  </p>
+                  <p>
+                    {t("billing.forRoom")} {billing.rooms.room_number} -{" "}
+                    {fullname}
+                  </p>
                 </div>
               </DialogDescription>
-              <Button variant="outline" size="sm" onClick={handlePrint} className="ml-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                className="ml-4"
+              >
                 <Printer className="mr-2" size={16} />
                 {t("billing.printReceipt")}
               </Button>
@@ -106,19 +129,27 @@ export default function BillingDetailDialog({
           {/* ข้อมูลผู้เช่าและห้อง */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t("billing.tenantInfo")}</CardTitle>
+              <CardTitle className="text-lg">
+                {t("billing.tenantInfo")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.receiptNumber")}</p>
-                <p className="text-base">{billing.receipt_number || '-'}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.receiptNumber")}
+                </p>
+                <p className="text-base">{billing.receipt_number || "-"}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.roomNumber")}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.roomNumber")}
+                </p>
                 <p className="text-base">{billing.rooms.room_number}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.tenantName")}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.tenantName")}
+                </p>
                 <p className="text-base">{fullname}</p>
               </div>
             </CardContent>
@@ -127,42 +158,56 @@ export default function BillingDetailDialog({
           {/* รายละเอียดค่าใช้จ่าย */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t("billing.expenseDetail")}</CardTitle>
+              <CardTitle className="text-lg">
+                {t("billing.expenseDetail")}
+              </CardTitle>
               <CardDescription>
-                {t("billing.forMonth", { month: formatMonth(billing.billing_month) })}
+                {t("billing.forMonth", {
+                  month: formatMonth(billing.billing_month),
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span>{t("billing.roomRent")}</span>
-                <span className="font-medium">{formatCurrency(billing.room_rent)}</span>
+                <span className="font-medium">
+                  {formatCurrency(billing.room_rent)}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <div>
                   <span>{t("billing.waterCost")}</span>
                   <span className="text-sm text-muted-foreground ml-2">
-                    ({billing.water_units} {t("billing.personUnit")} × 100 {t("billing.baht")})
+                    ({billing.water_units} {t("billing.personUnit")} × 100{" "}
+                    {t("billing.baht")})
                   </span>
                 </div>
-                <span className="font-medium">{formatCurrency(billing.water_cost)}</span>
+                <span className="font-medium">
+                  {formatCurrency(billing.water_cost)}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <div>
                   <span>{t("billing.electricityCost")}</span>
                   <span className="text-sm text-muted-foreground ml-2">
-                    ({billing.electricity_units} {t("billing.electricityUnit")} × 8 {t("billing.baht")})
+                    ({billing.electricity_units} {t("billing.electricityUnit")}{" "}
+                    × 8 {t("billing.baht")})
                   </span>
                 </div>
-                <span className="font-medium">{formatCurrency(billing.electricity_cost)}</span>
+                <span className="font-medium">
+                  {formatCurrency(billing.electricity_cost)}
+                </span>
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>{t("billing.total")}</span>
-                <span className="text-primary">{formatCurrency(billing.sum)}</span>
+                <span className="text-primary">
+                  {formatCurrency(billing.sum)}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -170,27 +215,39 @@ export default function BillingDetailDialog({
           {/* ข้อมูลการชำระเงิน */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t("billing.paymentInfo")}</CardTitle>
+              <CardTitle className="text-lg">
+                {t("billing.paymentInfo")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.dueDate")}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.dueDate")}
+                </p>
                 <p className="text-base">{formatDate(billing.due_date)}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.paidDate")}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.paidDate")}
+                </p>
                 <p className="text-base">
-                  {billing.paid_date ? formatDate(billing.paid_date) : t("billing.notPaid")}
+                  {billing.paid_date
+                    ? formatDate(billing.paid_date)
+                    : t("billing.notPaid")}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.status")}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.status")}
+                </p>
                 <div className="mt-1">
                   <BillingStatusBadge status={billing.status} />
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("billing.createdAt")}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("billing.createdAt")}
+                </p>
                 <p className="text-base">{formatDate(billing.created_at)}</p>
               </div>
             </CardContent>

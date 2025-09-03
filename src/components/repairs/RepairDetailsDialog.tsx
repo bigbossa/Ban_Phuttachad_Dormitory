@@ -107,14 +107,8 @@ export function RepairDetailsDialog({
               <span className="font-medium">อัปเดตล่าสุด:</span>
               <span className="col-span-2 text-sm text-muted-foreground">
                 {repair.completed_date
-                  ? format(
-                      parseISO(repair.completed_date),
-                      "yyyy-MM-dd"
-                    )
-                  : format(
-                      parseISO(repair.reported_date),
-                      "yyyy-MM-dd"
-                    )}
+                  ? format(parseISO(repair.completed_date), "yyyy-MM-dd")
+                  : format(parseISO(repair.reported_date), "yyyy-MM-dd")}
               </span>
             </div>
             <div className="grid grid-cols-3 items-center gap-4 mt-2">
@@ -141,7 +135,7 @@ export function RepairDetailsDialog({
               <span className="font-medium">{t("repairs.reportedDate")}:</span>
               <span className="col-span-2 ">
                 <span className="text-sm font-medium">
-                  {format(parseISO(repair.reported_date), "PPP")}
+                  {format(parseISO(repair.reported_date), "dd/MM/yyyy")}
                 </span>
                 <br />
                 <span className="text-xs text-muted-foreground hidden">

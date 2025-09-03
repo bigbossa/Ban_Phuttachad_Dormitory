@@ -22,11 +22,10 @@ export const useBillingCalculation = (
   const { billingMonth, setBillingMonth, dueDate, setDueDate, resetForm } =
     useBillingFormState(open);
 
-  // กำหนดค่าน้ำ
-  const WATER_RATE = 100;
-  const ELECTRICITY_RATE = 7;
+  // กำหนดค่าน้ำและค่าไฟจาก settings
+  const WATER_RATE = settings.waterRate || 100;
+  const ELECTRICITY_RATE = settings.electricityRate || 7;
   const BillingMonth = `${billingMonth}-01`;
-  // กำหนดค่าไฟฟ้า
 
   // กรองให้เหลือเฉพาะห้องที่ "ยังไม่มีบิล" สำหรับเดือนที่เลือก
   useEffect(() => {

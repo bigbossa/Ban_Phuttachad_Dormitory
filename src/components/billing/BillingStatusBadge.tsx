@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 interface BillingStatusBadgeProps {
   status: string;
@@ -7,6 +8,8 @@ interface BillingStatusBadgeProps {
 export default function BillingStatusBadge({
   status,
 }: BillingStatusBadgeProps) {
+  const { t } = useLanguage();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
@@ -23,11 +26,11 @@ export default function BillingStatusBadge({
   const getStatusText = (status: string) => {
     switch (status) {
       case "paid":
-        return "ชำระแล้ว";
+        return t("billing.status_paid");
       case "pending":
-        return "รอชำระ";
+        return t("billing.status_pending");
       case "overdue":
-        return "เกินกำหนด";
+        return t("billing.status_overdue");
       default:
         return status;
     }

@@ -86,14 +86,21 @@ export default function BillingTable({
       minimumFractionDigits: 0,
     }).format(amount);
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("th-TH");
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
-  const formatMonth = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "long",
-    });
+  const formatMonth = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   const visibleBillings = filteredBillings.filter((billing) => {
     if (isAdmin || isStaff) return true;

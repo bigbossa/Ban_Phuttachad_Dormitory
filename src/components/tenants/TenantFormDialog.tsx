@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLanguage } from "@/providers/LanguageProvider";
 import {
   Dialog,
   DialogContent,
@@ -75,45 +76,46 @@ function transformData(): Province[] {
   }));
 }
 
-const tenantSchema = z.object({
-  firstName: z.string().nonempty("กรุณากรอกชื่อ"),
-  lastName: z.string().nonempty("กรุณากรอกนามสกุล"),
-  email: z.string().email("อีเมลไม่ถูกต้อง").optional().or(z.literal("")),
-  phone: z.string().nonempty("กรุณากรอกเบอร์โทร"),
-  id_card: z.string().optional(),
-  houseNumber: z.string().nonempty("กรุณากรอกบ้านเลขที่"),
-  village: z.string().nonempty("กรุณากรอกหมู่ที่"),
-  street: z.string().optional(),
-  subDistrict: z.string().nonempty("กรุณากรอกตำบล/แขวง"),
-  district: z.string().nonempty("กรุณากรอกอำเภอ/เขต"),
-  province: z.string().nonempty("กรุณากรอกจังหวัด"),
-  address: z.string().optional(),
-  room_id: z.string().optional(),
-  room_number: z.string().optional(),
-  residents: z.string().optional(),
-  action: z.string().optional(),
-  zip_code: z.string().optional(),
-});
-type TenantInsert = z.infer<typeof tenantSchema> & { id?: string };
+// Schema will be created inside the component to access translations
+type TenantInsert = {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone: string;
+  id_card?: string;
+  houseNumber: string;
+  village: string;
+  street?: string;
+  subDistrict: string;
+  district: string;
+  province: string;
+  address?: string;
+  room_id?: string;
+  room_number?: string;
+  residents?: string;
+  action?: string;
+  zip_code?: string;
+  id?: string;
+};
 
-const residentSchema = z.object({
-  firstName: z.string().nonempty("กรุณากรอกชื่อ"),
-  lastName: z.string().nonempty("กรุณากรอกนามสกุล"),
-  email: z.string().email("อีเมลไม่ถูกต้อง").optional().or(z.literal("")),
-  phone: z.string().nonempty("กรุณากรอกเบอร์โทร"),
-  id_card: z.string().optional(),
-  houseNumber: z.string().nonempty("กรุณากรอกบ้านเลขที่"),
-  village: z.string().nonempty("กรุณากรอกหมู่ที่"),
-  street: z.string().optional(),
-  subDistrict: z.string().nonempty("กรุณากรอกตำบล/แขวง"),
-  district: z.string().nonempty("กรุณากรอกอำเภอ/เขต"),
-  province: z.string().nonempty("กรุณากรอกจังหวัด"),
-  address: z.string().optional(),
-  room_id: z.string().optional(),
-  action: z.string().optional(),
-  zip_code: z.string().optional(),
-});
-type ResidentInsert = z.infer<typeof residentSchema> & { id?: string };
+type ResidentInsert = {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone: string;
+  id_card?: string;
+  houseNumber: string;
+  village: string;
+  street?: string;
+  subDistrict: string;
+  district: string;
+  province: string;
+  address?: string;
+  room_id?: string;
+  action?: string;
+  zip_code?: string;
+  id?: string;
+};
 
 type Props = {
   open: boolean;
@@ -138,6 +140,54 @@ export default function TenantFormDialog({
 }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
+
+  // Create schemas with translations
+  const tenantSchema = z.object({
+    firstName: z.string().nonempty(t("tenants.firstNameRequired")),
+    lastName: z.string().nonempty(t("tenants.lastNameRequired")),
+    email: z
+      .string()
+      .email(t("tenants.emailInvalid"))
+      .optional()
+      .or(z.literal("")),
+    phone: z.string().nonempty(t("tenants.phoneRequired")),
+    id_card: z.string().optional(),
+    houseNumber: z.string().nonempty(t("tenants.houseNumberRequired")),
+    village: z.string().nonempty(t("tenants.villageRequired")),
+    street: z.string().optional(),
+    subDistrict: z.string().nonempty(t("tenants.subDistrictRequired")),
+    district: z.string().nonempty(t("tenants.districtRequired")),
+    province: z.string().nonempty(t("tenants.provinceRequired")),
+    address: z.string().optional(),
+    room_id: z.string().optional(),
+    room_number: z.string().optional(),
+    residents: z.string().optional(),
+    action: z.string().optional(),
+    zip_code: z.string().optional(),
+  });
+
+  const residentSchema = z.object({
+    firstName: z.string().nonempty(t("tenants.firstNameRequired")),
+    lastName: z.string().nonempty(t("tenants.lastNameRequired")),
+    email: z
+      .string()
+      .email(t("tenants.emailInvalid"))
+      .optional()
+      .or(z.literal("")),
+    phone: z.string().nonempty(t("tenants.phoneRequired")),
+    id_card: z.string().optional(),
+    houseNumber: z.string().nonempty(t("tenants.houseNumberRequired")),
+    village: z.string().nonempty(t("tenants.villageRequired")),
+    street: z.string().optional(),
+    subDistrict: z.string().nonempty(t("tenants.subDistrictRequired")),
+    district: z.string().nonempty(t("tenants.districtRequired")),
+    province: z.string().nonempty(t("tenants.provinceRequired")),
+    address: z.string().optional(),
+    room_id: z.string().optional(),
+    action: z.string().optional(),
+    zip_code: z.string().optional(),
+  });
 
   // ฟอร์มผู้เช่า
   const tenantForm = useForm<TenantInsert>({
@@ -231,8 +281,8 @@ export default function TenantFormDialog({
       if (tenant && tenant.id) {
         const addressParts = parseAddress(tenant.address || "");
         tenantForm.reset({
-          firstName: tenant.first_name || "",
-          lastName: tenant.last_name || "",
+          firstName: tenant.firstName || "",
+          lastName: tenant.lastName || "",
           email: tenant.email || "",
           phone: tenant.phone || "",
           houseNumber: addressParts.houseNumber || "",
@@ -260,7 +310,7 @@ export default function TenantFormDialog({
       if (error) {
         toast({
           variant: "destructive",
-          title: "เกิดข้อผิดพลาด",
+          title: t("tenants.error"),
           description: error.message,
         });
         residentForm.reset();
@@ -291,14 +341,14 @@ export default function TenantFormDialog({
     }
 
     loadData();
-  }, [open, tenant, room_id]);
+  }, [open, tenant, room_id, room_number, tenantForm, residentForm, t, toast]);
 
   const onSubmitTenant = async (data: TenantInsert) => {
     if (occupantCount >= capacity) {
       toast({
         variant: "destructive",
-        title: "ไม่สามารถเพิ่มผู้เช่าได้",
-        description: "ห้องนี้เต็มแล้ว",
+        title: t("tenants.cannotAddTenant"),
+        description: t("tenants.roomFull"),
       });
       return;
     }
@@ -311,9 +361,12 @@ export default function TenantFormDialog({
       last_name: data.lastName,
       email: data.email,
       phone: data.phone,
-      address: fullAddress, // เปลี่ยนจาก fullAddress เป็น address
+      address: fullAddress,
       id_card: data.id_card,
       room_id,
+      room_number,
+      residents: "ผู้เช่า",
+      image: "",
       action: "1",
     };
 
@@ -322,7 +375,7 @@ export default function TenantFormDialog({
     if (!idToUpdate) {
       toast({
         variant: "destructive",
-        title: "ไม่พบผู้เช่า",
+        title: t("tenants.tenantNotFound"),
       });
       return;
     }
@@ -336,28 +389,28 @@ export default function TenantFormDialog({
       if (error) {
         toast({
           variant: "destructive",
-          title: "เกิดข้อผิดพลาด",
+          title: t("tenants.error"),
           description: error.message,
         });
         return;
       }
 
       toast({
-        title: "แก้ไขข้อมูลผู้เช่าสำเร็จ",
+        title: t("tenants.editTenantSuccess"),
       });
 
       tenantForm.reset();
       onOpenChange(false);
       onTenantAdded?.();
 
-      queryClient.invalidateQueries(["tenants"]);
-      queryClient.invalidateQueries(["rooms"]);
-      queryClient.invalidateQueries(["occupancy"]);
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["occupancy"] });
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "เกิดข้อผิดพลาด",
-        description: (err as Error).message || "ไม่สามารถแก้ไขผู้เช่าได้",
+        title: t("tenants.error"),
+        description: (err as Error).message || t("tenants.cannotEditTenant"),
       });
     }
   };
@@ -366,8 +419,8 @@ export default function TenantFormDialog({
     if (occupantCount >= capacity) {
       toast({
         variant: "destructive",
-        title: "ไม่สามารถเพิ่มลูกห้องได้",
-        description: "ห้องนี้เต็มแล้ว",
+        title: t("tenants.cannotAddRoommate"),
+        description: t("tenants.roomFull"),
       });
       return;
     }
@@ -381,8 +434,11 @@ export default function TenantFormDialog({
       phone: data.phone,
       email: data.email,
       id_card: data.id_card,
-      address: fullAddress, // เปลี่ยนจาก fullAddress เป็น address
+      address: fullAddress,
       room_id,
+      room_number,
+      residents: "ลูกเช่า",
+      image: "",
       action: "1",
     };
 
@@ -395,29 +451,28 @@ export default function TenantFormDialog({
           .eq("id", data.id);
 
         if (error) throw error;
-        toast({ title: "แก้ไขข้อมูลลูกห้องสำเร็จ" });
+        toast({ title: t("tenants.editRoommateSuccess") });
       } else {
         // insert
         const { error } = await supabase
           .from("tenants")
           .insert(residentPayload);
         if (error) throw error;
-        toast({ title: "เพิ่มข้อมูลลูกห้องสำเร็จ" });
+        toast({ title: t("tenants.addRoommateSuccess") });
       }
 
       residentForm.reset();
       onOpenChange(false);
       onTenantAdded?.();
 
-      queryClient.invalidateQueries(["tenants"]);
-      queryClient.invalidateQueries(["rooms"]);
-      queryClient.invalidateQueries(["occupancy"]);
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["occupancy"] });
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "เกิดข้อผิดพลาด",
-        description:
-          (err as Error).message || "ไม่สามารถบันทึกข้อมูลลูกห้องได้",
+        title: t("tenants.error"),
+        description: (err as Error).message || t("tenants.cannotSaveRoommate"),
       });
     }
   };
@@ -453,8 +508,8 @@ export default function TenantFormDialog({
     console.log("data", data);
 
     tenantForm.reset({
-      firstName: tenant.first_name || "",
-      lastName: tenant.last_name || "",
+      firstName: tenant.firstName || "",
+      lastName: tenant.lastName || "",
       email: tenant.email || "",
       phone: tenant.phone || "",
       houseNumber: addressParts.houseNumber || "",
@@ -486,12 +541,14 @@ export default function TenantFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>จัดการผู้เช่าและลูกห้อง</DialogTitle>
+          <DialogTitle>{t("tenants.manageTenantsAndRoommates")}</DialogTitle>
         </DialogHeader>
 
         {/* ฟอร์มผู้เช่า */}
         <div className="mb-6 border-b pb-4">
-          <h3 className="text-lg font-semibold mb-2">ข้อมูลผู้เช่า</h3>
+          <h3 className="text-lg font-semibold mb-2">
+            {t("tenants.tenantInformation")}
+          </h3>
           <Form {...tenantForm}>
             <form
               onSubmit={tenantForm.handleSubmit(onSubmitTenant)}
@@ -503,9 +560,12 @@ export default function TenantFormDialog({
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ชื่อ</FormLabel>
+                      <FormLabel>{t("tenants.firstName")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="ชื่อ" {...field} />
+                        <Input
+                          placeholder={t("tenants.firstName")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -516,9 +576,9 @@ export default function TenantFormDialog({
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>นามสกุล</FormLabel>
+                      <FormLabel>{t("tenants.lastName")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="นามสกุล" {...field} />
+                        <Input placeholder={t("tenants.lastName")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -531,9 +591,13 @@ export default function TenantFormDialog({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>อีเมล</FormLabel>
+                    <FormLabel>{t("tenants.email")}</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="อีเมล" {...field} />
+                      <Input
+                        type="email"
+                        placeholder={t("tenants.email")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -545,9 +609,9 @@ export default function TenantFormDialog({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>เบอร์โทร</FormLabel>
+                    <FormLabel>{t("tenants.phone")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="เบอร์โทร" {...field} />
+                      <Input placeholder={t("tenants.phone")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -560,9 +624,12 @@ export default function TenantFormDialog({
                   name="houseNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>บ้านเลขที่</FormLabel>
+                      <FormLabel>{t("tenants.houseNumber")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="บ้านเลขที่" {...field} />
+                        <Input
+                          placeholder={t("tenants.houseNumber")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -573,9 +640,9 @@ export default function TenantFormDialog({
                   name="village"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>หมู่ที่</FormLabel>
+                      <FormLabel>{t("tenants.village")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="หมู่ที่" {...field} />
+                        <Input placeholder={t("tenants.village")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -589,9 +656,9 @@ export default function TenantFormDialog({
                   name="street"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ถนน (ไม่จำเป็น)</FormLabel>
+                      <FormLabel>{t("tenants.streetOptional")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="ถนน" {...field} />
+                        <Input placeholder={t("tenants.street")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -602,7 +669,7 @@ export default function TenantFormDialog({
                   name="province"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>จังหวัด</FormLabel>
+                      <FormLabel>{t("tenants.province")}</FormLabel>
                       <FormControl>
                         <MySelect
                           {...field}
@@ -628,7 +695,7 @@ export default function TenantFormDialog({
                             tenantForm.setValue("district", "");
                             tenantForm.setValue("subDistrict", "");
                           }}
-                          placeholder="เลือกจังหวัด"
+                          placeholder={t("tenants.selectProvince")}
                           isClearable
                         />
                       </FormControl>
@@ -644,7 +711,7 @@ export default function TenantFormDialog({
                   name="district"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>อำเภอ/เขต</FormLabel>
+                      <FormLabel>{t("tenants.district")}</FormLabel>
                       <FormControl>
                         <MySelect
                           {...field}
@@ -673,8 +740,8 @@ export default function TenantFormDialog({
                           }}
                           placeholder={
                             selectedProvince
-                              ? "เลือกอำเภอ"
-                              : "กรุณาเลือกจังหวัดก่อน"
+                              ? t("tenants.selectDistrict")
+                              : t("tenants.pleaseSelectProvinceFirst")
                           }
                           isClearable
                           isDisabled={!selectedProvince}
@@ -690,7 +757,7 @@ export default function TenantFormDialog({
                   name="subDistrict"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ตำบล/แขวง</FormLabel>
+                      <FormLabel>{t("tenants.subDistrict")}</FormLabel>
                       <FormControl>
                         <MySelect
                           {...field}
@@ -728,22 +795,24 @@ export default function TenantFormDialog({
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
+                <label className="block mb-1 font-medium">
+                  {t("tenants.postalCode")}
+                </label>
                 <input
                   type="text"
                   readOnly
                   className="w-full border rounded px-3 py-2 bg-gray-100"
                   value={selectedDistrict?.zip_code || ""}
-                  placeholder="รหัสไปรษณีย์"
+                  placeholder={t("tenants.postalCode")}
                 />
               </div>
 
               <div className="text-sm text-muted-foreground">
-                ห้องที่เลือก: <strong>{room_number}</strong>
+                {t("tenants.selectedRoom")} <strong>{room_number}</strong>
               </div>
 
               <div className="flex justify-end mt-2">
-                <Button type="submit">บันทึกผู้เช่า</Button>
+                <Button type="submit">{t("tenants.saveTenant")}</Button>
               </div>
             </form>
           </Form>
@@ -752,7 +821,9 @@ export default function TenantFormDialog({
         {/* ฟอร์มลูกห้อง */}
         {roomTenants.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold mb-2">ข้อมูลลูกห้อง</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {t("tenants.roommateInformation")}
+            </h3>
             <Form {...residentForm}>
               <form
                 onSubmit={residentForm.handleSubmit(onSubmitResident)}
@@ -890,7 +961,7 @@ export default function TenantFormDialog({
                               residentForm.setValue("district", "");
                               residentForm.setValue("subDistrict", "");
                             }}
-                            placeholder="เลือกจังหวัด"
+                            placeholder={t("tenants.selectProvince")}
                             isClearable
                           />
                         </FormControl>
@@ -906,7 +977,7 @@ export default function TenantFormDialog({
                     name="district"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>อำเภอ/เขต</FormLabel>
+                        <FormLabel>{t("tenants.district")}</FormLabel>
                         <FormControl>
                           <MySelect
                             {...field}
@@ -952,7 +1023,7 @@ export default function TenantFormDialog({
                     name="subDistrict"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>ตำบล/แขวง</FormLabel>
+                        <FormLabel>{t("tenants.subDistrict")}</FormLabel>
                         <FormControl>
                           <MySelect
                             {...field}
@@ -979,8 +1050,8 @@ export default function TenantFormDialog({
                             }}
                             placeholder={
                               selectedAmphoe
-                                ? "เลือกตำบล"
-                                : "กรุณาเลือกอำเภอก่อน"
+                                ? t("tenants.selectSubDistrict")
+                                : t("tenants.pleaseSelectDistrictFirst")
                             }
                             isClearable
                             isDisabled={!selectedAmphoe}
@@ -992,18 +1063,20 @@ export default function TenantFormDialog({
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium">รหัสไปรษณีย์</label>
+                  <label className="block mb-1 font-medium">
+                    {t("tenants.postalCode")}
+                  </label>
                   <input
                     type="text"
                     readOnly
                     className="w-full border rounded px-3 py-2 bg-gray-100"
                     value={selectedDistrict?.zip_code || ""}
-                    placeholder="รหัสไปรษณีย์"
+                    placeholder={t("tenants.postalCode")}
                   />
                 </div>
 
                 <div className="flex justify-end mt-2">
-                  <Button type="submit">บันทึกลูกห้อง</Button>
+                  <Button type="submit">{t("tenants.saveRoommate")}</Button>
                 </div>
               </form>
             </Form>

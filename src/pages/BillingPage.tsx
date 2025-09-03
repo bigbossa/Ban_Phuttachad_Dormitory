@@ -29,7 +29,7 @@ const BillingPage = () => {
     showCalculationDialog,
     setShowCalculationDialog,
     fetchBillings,
-    handleMarkAsPaid
+    handleMarkAsPaid,
   } = useBillingPage();
 
   const {
@@ -37,21 +37,33 @@ const BillingPage = () => {
     isDetailDialogOpen,
     openDetailDialog,
     closeDetailDialog,
-    setIsDetailDialogOpen
+    setIsDetailDialogOpen,
   } = useBillingDetail();
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const exportToExcel = () => {
     const data = filteredBillings.map((billing) => ({
-      [t("billing.month")]: new Date(billing.billing_month).toLocaleDateString("th-TH", { year: "numeric", month: "long" }),
+      [t("billing.month")]: formatDate(billing.billing_month),
       [t("billing.receiptNumber")]: billing.receipt_number || "-",
-      [t("billing.tenantName")]: `${billing.tenants.first_name} ${billing.tenants.last_name}`,
+      [t(
+        "billing.tenantName"
+      )]: `${billing.tenants.first_name} ${billing.tenants.last_name}`,
       [t("billing.room")]: billing.rooms.room_number,
       [t("billing.roomRent")]: billing.room_rent,
       [t("billing.waterCost")]: billing.water_cost,
       [t("billing.electricityCost")]: billing.electricity_cost,
       [t("billing.total")]: billing.sum,
-      [t("billing.dueDate")]: new Date(billing.due_date).toLocaleDateString("th-TH"),
+      [t("billing.dueDate")]: formatDate(billing.due_date),
       [t("billing.status")]: billing.status,
-      [t("billing.paidDate")]: billing.paid_date ? new Date(billing.paid_date).toLocaleDateString("th-TH") : t("billing.notPaid"),
+      [t("billing.paidDate")]: billing.paid_date
+        ? formatDate(billing.paid_date)
+        : t("billing.notPaid"),
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -100,7 +112,10 @@ const BillingPage = () => {
 
   return (
     <div className="animate-in fade-in duration-500">
-      <BillingHeader onOpenCalculationDialog={() => setShowCalculationDialog(true)} exportToExcel={exportToExcel} />
+      <BillingHeader
+        onOpenCalculationDialog={() => setShowCalculationDialog(true)}
+        exportToExcel={exportToExcel}
+      />
 
       <BillingFilters
         searchTerm={searchTerm}

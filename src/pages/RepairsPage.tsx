@@ -669,7 +669,7 @@ export default function RepairsPage() {
                     {repair.room_id}
                   </TableCell> */}
                   <TableCell>
-                    {format(parseISO(repair.reported_date), "PPP")}
+                    {format(parseISO(repair.reported_date), "dd/MM/yyyy")}
                   </TableCell>
                   <TableCell>
                     <Badge className={`${getStatusColor(repair.status)}`}>
