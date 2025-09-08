@@ -279,6 +279,9 @@ const translations: Record<Language, Record<string, string>> = {
     "tenants.pdfContractTitle": "PDF Contract",
     "tenants.contractImageAlt": "Contract",
     "profile.tenantOnlyEdit": "Only tenants can edit their own profile",
+    "profile.adminOnlyView": "Admin profile is view-only",
+    "profile.department": "Department",
+    "profile.enterDepartment": "Enter department",
     "announcements.calendar": "Calendar",
     "announcements.add": "Add Announcement",
     "announcements.edit": "Edit Announcement",
@@ -664,27 +667,31 @@ const translations: Record<Language, Record<string, string>> = {
     "address.zipCode": "Postal Code",
     "common.error": "Error",
     "tenants.addResident": "Add Resident",
-    "billing.editBill": "Edit Bill", 
-  "billing.meterMustNotLessThanPrevious": "Meter reading must not be less than previous value",
-  "billing.totalAmount": "Total Amount", 
-  "billing.save": "Save",
-  "billing.saveBillError": "Error saving bill",
-  "billing.saveBillSuccessButMeterError": "Bill saved but could not update room meter", 
-    "rooms.edit_description" : "Edit Room Description",
-    "rooms.description_placeholder": "Enter room description here"
+    "billing.editBill": "Edit Bill",
+    "billing.meterMustNotLessThanPrevious":
+      "Meter reading must not be less than previous value",
+    "billing.totalAmount": "Total Amount",
+    "billing.save": "Save",
+    "billing.saveBillError": "Error saving bill",
+    "billing.saveBillSuccessButMeterError":
+      "Bill saved but could not update room meter",
+    "rooms.edit_description": "Edit Room Description",
+    "rooms.description_placeholder": "Enter room description here",
   },
   //TH
-  th: { 
+  th: {
     "All Statuses": "สถานะทั้งหมด",
-    "rooms.edit_description" : "แก้ไขคำอธิบายห้อง",
+    "rooms.edit_description": "แก้ไขคำอธิบายห้อง",
     "rooms.description_placeholder": "กรอกคำอธิบายห้องที่นี่",
     "billing.title": "ระบบบิลค่าเช่า",
-  "billing.editBill": "แก้ไขบิล", 
-  "billing.meterMustNotLessThanPrevious": "เลขมิเตอร์ต้องไม่ต่ำกว่าค่าก่อนหน้า", 
-  "billing.totalAmount": "ยอดรวม", 
-  "billing.save": "บันทึก", 
-  "billing.saveBillError": "เกิดข้อผิดพลาดในการบันทึกข้อมูลบิล", 
-  "billing.saveBillSuccessButMeterError": "บันทึกบิลสำเร็จ แต่ไม่สามารถอัปเดตเลขมิเตอร์ห้องได้", 
+    "billing.editBill": "แก้ไขบิล",
+    "billing.meterMustNotLessThanPrevious":
+      "เลขมิเตอร์ต้องไม่ต่ำกว่าค่าก่อนหน้า",
+    "billing.totalAmount": "ยอดรวม",
+    "billing.save": "บันทึก",
+    "billing.saveBillError": "เกิดข้อผิดพลาดในการบันทึกข้อมูลบิล",
+    "billing.saveBillSuccessButMeterError":
+      "บันทึกบิลสำเร็จ แต่ไม่สามารถอัปเดตเลขมิเตอร์ห้องได้",
     "tenants.addResident": "เพิ่มลูกเช่า",
     "tenants.manageTenantsAndRoommates": "จัดการผู้เช่าและลูกห้อง",
     "tenants.tenantInformation": "ข้อมูลผู้เช่า",
@@ -782,7 +789,7 @@ const translations: Record<Language, Record<string, string>> = {
     "announcements.titlePlaceholder": "กรอกชื่อประกาศ",
     "reports.repairRequestAnalysisDescription": "การกระจายสถานะคำขอซ่อม",
     "reports.repairRequestAnalysis": "การวิเคราะห์คำขอซ่อม",
-    "loading" : "กำลังโหลด...",
+    loading: "กำลังโหลด...",
     "reports.revenueYearlyTitle": "รายได้รายปี",
     "reports.revenueYearlyDesc": "แนวโน้มและการวิเคราะห์รายได้รายปี",
     "dashboard.tenantRoom": "ผู้เช่าห้อง",
@@ -1255,6 +1262,9 @@ const translations: Record<Language, Record<string, string>> = {
     "tenants.pdfContractTitle": "สัญญาเช่า PDF",
     "tenants.contractImageAlt": "สัญญาเช่า",
     "profile.tenantOnlyEdit": "เฉพาะผู้เช่าสามารถแก้ไขโปรไฟล์ของตนเองได้",
+    "profile.adminOnlyView": "โปรไฟล์ผู้ดูแลระบบเป็นแบบดูอย่างเดียว",
+    "profile.department": "แผนก",
+    "profile.enterDepartment": "กรอกแผนก",
     "announcements.calendar": "ปฏิทิน",
     "announcements.add": "เพิ่มประกาศ",
     "announcements.edit": "แก้ไขประกาศ",
@@ -1337,8 +1347,6 @@ const translations: Record<Language, Record<string, string>> = {
     edit: "แก้ไข",
   },
 };
-
-
 
 export function LanguageProvider({
   children,
