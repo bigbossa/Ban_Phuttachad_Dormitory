@@ -677,9 +677,15 @@ const translations: Record<Language, Record<string, string>> = {
       "Bill saved but could not update room meter",
     "rooms.edit_description": "Edit Room Description",
     "rooms.description_placeholder": "Enter room description here",
+    "rooms.update": "Updated",
+    "tenants.roommateInformation": "Roommate Information",
+    "tenants.postalCode": "Postal Code",
   },
   //TH
   th: {
+    "tenants.postalCode": "รหัสไปรษณีย์",
+    "tenants.roommateInformation": "ข้อมูลลูกห้อง",
+    "rooms.update": "อัปเดต",
     "All Statuses": "สถานะทั้งหมด",
     "rooms.edit_description": "แก้ไขคำอธิบายห้อง",
     "rooms.description_placeholder": "กรอกคำอธิบายห้องที่นี่",
